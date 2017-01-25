@@ -1,0 +1,6 @@
+keyring.py
+.project
+.pydevproject
+old_reference
+__pycache__
+log.txt

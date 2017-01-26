@@ -1,5 +1,6 @@
+#!/usr/bin/python3
 import discord
-import DiscordThrall  
+import DiscordThrall
 from keyring import *  # @UnusedWildImport
 
 client = discord.Client()
@@ -16,7 +17,15 @@ async def on_ready():
             if channel.name == 'schrecknet':
                 DiscordThrall.Schrecknet = channel
                 DiscordThrall.Server = server
-    
+            if channel.name == 'wod_rss':
+                DiscordThrall.rss_chan = channel
+
+#When someone joins the server
+# @client.event
+# async def on_member_join(member):
+#     server = member.server
+#     fmt = 'Welcome {0.mention} to {1.name}!'
+#     await client.send_message(server, fmt.format(member, server))
 
 @client.event
 async def on_message(message):
@@ -43,6 +52,16 @@ async def on_message(message):
     else:
         return
     await client.send_message(destination, response)
+    
+@client.event
+async def on_typing(channel,user,when):
+    logs = []
+    async for message in client.logs_from(DiscordThrall.rss_chan, limit=50):
+        logs.append(message)
+    rssupdates = Bot.rss_update(logs)
+    if rssupdates is not None:
+        for update in rssupdates:
+            await client.send_message(DiscordThrall.rss_chan,update )
 
 client.run(DiscordToken)
 

@@ -1,4 +1,4 @@
-
+#!/usr/bin/python3
 class Current_User():
     def __init__(self, json):
         self.id = json['id']

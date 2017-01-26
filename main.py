@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import tkinter as tk #UI
 import apiaccess
 from keyring import ObsidianKey,ObsidianSecret

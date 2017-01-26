@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from rauth import OAuth1Service
 
 class ObsidianAPI():

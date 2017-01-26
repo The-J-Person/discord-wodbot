@@ -12,13 +12,6 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    for server in client.servers:
-        for channel in server.channels:
-            if channel.name == 'schrecknet':
-                DiscordThrall.Schrecknet = channel
-                DiscordThrall.Server = server
-            if channel.name == 'wod_rss':
-                DiscordThrall.rss_chan = channel
 
 #When someone joins the server
 # @client.event
@@ -51,17 +44,25 @@ async def on_message(message):
         destination, response = Bot.schrecknetpost(message)
     else:
         return
-    await client.send_message(destination, response)
+    chan = client.get_channel(destination)
+    await client.send_message(chan, response)
     
 @client.event
 async def on_typing(channel,user,when):
+    if not Bot.rss_ready():
+        return
     logs = []
-    async for message in client.logs_from(DiscordThrall.rss_chan, limit=50):
-        logs.append(message)
+    # Everything here is a dirty, inefficient hack. Optimize it!
+    for ch_id in DiscordThrall.rss_chan:
+        chan = client.get_channel(ch_id)
+        async for message in client.logs_from(chan, limit=50):
+            logs.append(message)
     rssupdates = Bot.rss_update(logs)
     if rssupdates is not None:
         for update in rssupdates:
-            await client.send_message(DiscordThrall.rss_chan,update )
+            for ch_id in DiscordThrall.rss_chan:
+                chan = client.get_channel(ch_id)
+                await client.send_message(chan,update)
 
 client.run(DiscordToken)
 

@@ -2,6 +2,7 @@
 import random
 import feedparser
 import time
+from discord import message
 
 # list of feeds to pull down
 rss_feed_list = [ "https://www.reddit.com/r/WhiteWolfRPG/new.rss"
@@ -13,6 +14,7 @@ UpdateFrequency = 1800 #rss update frequency, in seconds
 
 R20BNServer = '239041359384805377'
 Schrecknet = '272633168178446337'
+Fledglings_Channel = '239041359384805377'
 rss_chan = ['271771293739778058', '270382116322148353']
 
 class Bot():
@@ -20,35 +22,153 @@ class Bot():
         global Instance 
         Instance = self
         self.last_updated = time.time()-UpdateFrequency
+        
     def log(self,message):
         logfile = open('log.txt','a+')
         logtext = str(message.timestamp) + ' ' + str(message.author) + ' [' + str(message.channel) + '] ' + message.content + '\n'
         logfile.write(logtext)
         logfile.close()
-    def rolldice(self, message):
+        
+    def exploderoll(self, faces):
+        results = []
+        roll = random.randrange(1,faces+1)
+        results.append(roll)
+        if roll==faces:
+            results.append(self.exploderoll(faces))
+        return results
+    
+    def rolldice(self, amount, faces, diff = None, botch = None, explode = False, modifier = 0):
+        response = "("
+        total = 0
+        roll_results = []
+        if explode:
+            # Exploding die rolled recursively, like this:
+            for _ in range(amount):
+                for result in self.exploderoll(faces):
+                    roll_results.append(result)
+        else:
+            # Non-exploding dice rolled like this!
+            for _ in range(amount):
+                roll_results.append(random.randrange(1,faces+1))
+        if diff is not None:
+            success = 0
+            for result in roll_results:
+                if result>=diff:
+                    response = response + str(result) + " "
+                    success += 1
+                elif botch is not None and result <= botch:
+                    response = response + "**" + str(result) + "** "
+                    success -= 1
+                else:
+                    response  = response + "~~" + str(result) + "~~ "
+            response = response + ", " + str(success) + " successes)"
+            total = success
+        else:
+            for result in roll_results:
+                response = response + str(result) + " "
+                total += result
+        total += modifier
+        if modifier == 0:
+            modifier = ""
+        return response + ") " + str(modifier) + " = " + str(total)
+    
+    def dice(self, message):
         self.log(message)
         try:
-            result=""
-            part = message.content.split()[1]
-            parts = part.split('d')
-            partnums = [int(parts[0]), int(parts[1])]
-            for _ in range(partnums[0]):
-                randomnum = random.randrange(1,partnums[1]+1)
-                result = result + str(randomnum) + ','
-            return message.channel, result
-        except:
-            return message.channel, "I didn't understand that one, sorry :("
+            result = ""
+            amount = 0
+            faces = 0
+            diff = None
+            botch = None
+            explode = False
+            modifier = 0
+            comment = ''
+
+            the_command = message.content.replace('!roll ','').replace('!r ','')
+            if the_command.find('#') != -1:
+                both = the_command.split('#')
+                the_command = both[0]
+                comment = both[1]
+            the_command = the_command.replace(' ','')
+            parsed = the_command
+#             print("DEBUG: Full message is " + message.content)
+#             print("DEBUG: " + parsed)
+            if parsed.find('-') != -1:
+                both = parsed.split('-')
+                modifier -= int(both[1])
+                parsed = both[0]
+            if parsed.find('+') != -1:
+                both = parsed.split('+')
+                modifier += int(both[1])
+                parsed = both[0]
+            if parsed.find('f') != -1:
+                both = parsed.split('f')
+                botch = int(both[1])
+                parsed = both[0]
+            if parsed.find('>=') != -1:
+                both = parsed.split('>=')
+                diff = int(both[1])
+                parsed = both[0]
+            if parsed.find('>') != -1:
+                both = parsed.split('>')
+                diff = int(both[1])+1
+                parsed = both[0]
+            if parsed.find('d') != -1:
+                both = parsed.split('d')
+                faces = int(both[1])
+                amount = int(both[0])
+                
+            else:
+                return message.channel.id , "I don't see what I should roll."
+            # The response is constructed here
+            result = str(message.author.mention) + ': `' + the_command + '`' + comment + ' = ' + self.rolldice(amount, faces, diff, botch, explode, modifier)
+            # End response construction
+            return message.channel.id , result
+        except Exception as e:
+            print("DEBUG: Couldn't read roll [malformed] : " + str(e))  
+            return message.channel.id , "I didn't understand this roll request."
             pass
+        
     def schrecknetpost(self, message):
         self.log(message)
         schmsg = message.content.partition(' ')[2]
         schname = "**" + schmsg.partition(' ')[0].replace('*','') + ":** "
         schmsg = schmsg.partition(' ')[2]
         return Schrecknet, schname+schmsg
+    
+    def give_role(self, message):
+        if message.server == None:
+            return "Please use this command on the server.", None
+        try:
+            target = message.mentions[0]
+        except:
+            return "I don't see who I should promote.", None
+        try:
+            parts = message.content.split(' ')
+            target_role = int(parts[2])
+        except:
+            return "The role to be given seems invalid.", None
+        roles = message.server.role_hierarchy
+        roles.reverse()
+        AST = None
+        for role in roles:
+            if role.name == "Assistant Storyteller" :
+                AST = role
+        if AST == None :
+            return "It seems the Assistant Storyteller role no longer exists???", None
+        if message.author.top_role<AST:
+            return "Only staff can promote.", None
+        if message.author.top_role<=roles[target_role]:
+            return "You cannot promote to your top role or higher", None
+        # Here we know the requester has the rights to promote the requestee
+        return roles[target_role], target
+            
+    
     def rss_ready(self):
         if time.time()>self.last_updated+UpdateFrequency:
             return True
         return False
+    
     def rss_update(self,rss_history):
         if self.rss_ready():
             self.last_updated = time.time()
@@ -98,5 +218,42 @@ class Bot():
 #         print(updates)
 #         return None
         return updates
-        
+    
+    def print_info(self, message):
+        what = message.content.split(' ')[1].lower()
+        if what == "commands":
+            return """**List of Commands:**
+Replace any item in [] square brackets with appropriate content.
+Content in () round brackets may be omitted. *Round brackets are not part of the command!*
+            
+`!help [commands/rolling/roles/possibly other things]` // Provides help text on the requested subject
+`!r(oll) [NdN(>=NfN+N-N]` // Rolls dice
+`!sch(recknet) [name] [message]` // Sends a message to #schrecknet with the specified username.
+`!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user, only useable by staff.
+""" 
+        elif what == "rolling":
+            return """**Rolling**
+            
+Format:
+`!r(oll) [AdB(>=CfD+E-F)]`
+Rolls A dice with B faces.
+Optionally, counting successes for results higher than C, 
+Botching on D and lower, 
+Adding E to the result and/or subtracting F from it. 
+Examples: 
+`!roll 6d10>=7f1+1 `
+Rolls a dice pool of six 10-sided dice at difficulty 7, subtracts any 1s from the number of successes, and adds 1 to the total (presumably willpower spent)
+`!r 3d10>7`
+Rolls a dice pool of three 10-sided dice at difficulty 8(>7), and doesn't substract 1s from successes rolled.
+`!r 1d6-1`
+Rolls one 6-sided die and subtracts 1 from the result."""
+        elif what == "roles":
+            hierarchy = message.server.role_hierarchy
+            hierarchy.reverse()
+            response = "**Server Roles:**\n\n"
+            for i in range(len(hierarchy)):
+                response += str(i) + '. ' + hierarchy[i].name + '\n'
+            return response
+        else:
+            return "Unknown help request: Try '!help commands' for a list."
         

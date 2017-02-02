@@ -45,12 +45,19 @@ async def on_message(message):
 #     elif message.content.startswith('!sleep'):
 #         await asyncio.sleep(5)
 #         await client.send_message(message.channel, 'Done sleeping')
+
     elif message.content.startswith('!introduce yourself'):
         await client.send_message(message.channel, 'Hello, I am your humble servant.')
+        
+    # Rolling
     elif message.content.startswith('!r ') or message.content.startswith('!roll '):
         destination, response = Bot.dice(message)
+        
+    # Schrecknet
     elif message.content.startswith('!sch ') or message.content.startswith('!schrecknet  '):
         destination, response = Bot.schrecknetpost(message)
+        
+    # Pruning
     elif message.content.startswith('!prune '):
         destination = message.channel.id
         if Bot.check_role_sufficiency(message.author, "Assistant Storyteller") == None:
@@ -59,13 +66,30 @@ async def on_message(message):
             response = "Only staff can prune messages."
         else:
             try:
-                to_prune = prune(message)
-                for msg in to_prune:
+                try:
+                    target = message.mentions[0]
+                except:
+                    return "I don't see a target mentioned."
+                try:
+                    parts = message.content.split(' ')
+                    num_to_prune = int(parts[2])
+                except:
+                    return "The amount to prune seems invalid"
+                history = []
+                
+                async for msg in client.logs_from(message.channel, limit=500):
+                    if msg.author == target:
+                        history.append(msg)
+                sorted_history = sorted(history, key=lambda entry: entry.timestamp)
+                sorted_history.reverse()
+                
+                for msg in sorted_history[:num_to_prune]:
                     await client.delete_message(msg)
                 response = "Pruned successfully."
             except:
                 response = "Some messages couldn't be deleted."
             
+    # Role adding
     elif message.content.startswith('!promote '):
         destination = message.channel.id
         role, target = Bot.give_role(message)
@@ -78,9 +102,13 @@ async def on_message(message):
                 response = "I was unable to complete this promotion :'("
         else:
             response = role
+    
+    # Help requests
     elif message.content.startswith('!help '):
         destination = message.channel.id
-        response = Bot.print_info(message)    
+        response = Bot.print_info(message)   
+    
+    # Blank help request 
     elif message.content == 'help!':
         destination = message.channel.id
         response = Bot.print_info(message)
@@ -125,22 +153,7 @@ async def on_typing(channel,user,when):
                 await client.send_message(chan,update)
                 
 def prune(message):
-    try:
-        target = message.mentions[0]
-    except:
-        return "I don't see a target mentioned."
-    try:
-        parts = message.content.split(' ')
-        num_to_prune = int(parts[2])
-    except:
-        return "The amount to prune seems invalid"
-    history = []
-    for channel in client.get_server(DiscordThrall.R20BNServer).channels:
-        async for msg in client.logs_from(channel, limit=500):
-            if msg.author == target:
-                history.append(msg)
-    sorted_history = sorted(history, key=lambda entry: entry.timestamp)
-    sorted_history.reverse()
+
     return sorted_history[:num_to_prune]
             
 client.run(DiscordToken)

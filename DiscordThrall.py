@@ -137,9 +137,9 @@ class Bot():
         roles = member.server.role_hierarchy
         roles.reverse()
         targetrole = None
-        for role in roles:
-            if role.name == str(role) :
-                targetrole = role
+        for r in roles:
+            if r.name == str(role) :
+                targetrole = r
         if targetrole == None:
             return None
         elif targetrole <= member.top_role:
@@ -238,6 +238,9 @@ class Bot():
 #         return None
         return updates
     
+    def parse_sheet(self):
+        return None
+    
     def print_info(self, message):
         try:
             what = message.content.split(' ')[1].lower()
@@ -252,6 +255,7 @@ Content in () round brackets may be omitted. *Round brackets are not part of the
 `!r(oll) [NdN(>=NfN+N-N]` // Rolls dice
 `!sch(recknet) [name] [message]` // Sends a message to #schrecknet with the specified username.
 `!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user, only useable by staff.
+`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned.
 """ 
         elif what == "rolling":
             return """**Rolling**

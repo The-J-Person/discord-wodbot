@@ -112,6 +112,23 @@ async def on_message(message):
     elif message.content == 'help!':
         destination = message.channel.id
         response = Bot.print_info(message)
+        
+    # Character sheet creation
+    elif message.content.startswith('!create '):
+        destination = message.channel.id
+        response, sheet = Bot.create_character(message)
+        await client.send_message(client.get_channel(DiscordThrall.Sheets_Channel), sheet)
+        
+    # Character sheet functionality
+    elif message.content.startswith('!char '):
+        destination = message.channel.id
+        sheets = []
+        async for msg in client.logs_from(client.get_channel(DiscordThrall.Sheets_Channel), limit=500):
+            sheets.append(msg)
+        response, newsheet, oldsheet = Bot.character_handling(message,sheets)
+        if newsheet is not None:
+            await client.edit_message(oldsheet, newsheet)
+        
     else:
         return
     chan = client.get_channel(destination)

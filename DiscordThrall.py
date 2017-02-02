@@ -241,6 +241,74 @@ class Bot():
     def parse_sheet(self):
         return None
     
+    def create_character(self,message):
+        parts = message.content.split(' ')
+        author = message.author.mention
+        name = parts[1]
+        gen = int(parts[2])
+        wil = int(parts[3])
+        sheet = []
+        sheet.append("**Owner:** " + message.author.mention)
+        sheet.append("**Name:** " + name)
+        sheet.append("**Generation:** " + str(gen))
+        sheet.append("**Bloodpool:** " + str(int((23-gen)/2)) + "/" + str(23-gen))
+        sheet.append("**Willpower:** " + str(wil) + "/" + str(wil))
+        sheet.append("**XP:** 0")
+        return name + " was probably created successfully.","\n\n".join(sheet)
+        
+    
+    def character_handling(self,message,sheets):
+        parts = message.content.split(' ')
+        name = parts[1]
+        command = parts[2]
+        shobject = parts[3]
+        sheetsections = None
+        for sheet in sheets:
+            sections = sheet.content.split('\n\n')
+            for section in sections:
+                if section.startswith("**Name:**") and section.split(' ')[1] == name:
+                    sheetsections = sections
+                    oldsheet = sheet
+                    break
+            if sheetsections is not None:
+                break
+        if sheetsections is None:
+            return "Not found", None
+        response = "There was some error."
+        mod = 0
+        if command == "use":
+            mod = -1
+        elif command == "add":
+            mod = 1
+        else:
+            mod = 0
+        if shobject == "will":
+            for i in range(len(sheetsections)):
+                if sheetsections[i].startswith("**Willpower:** "):
+                    old = int(sheetsections[i].split(' ')[1].split('/')[0])
+                    new = str(old+mod)
+                    sheetsections[i] = "**Willpower:** " + new + "/" + sheetsections[i].split('/')[1]
+                    response = "Stat is now: " + sheetsections[i]
+        elif shobject == "blood":
+            for i in range(len(sheetsections)):
+                if sheetsections[i].startswith("**Bloodpool:** "):
+                    old = int(sheetsections[i].split(' ')[1].split('/')[0])
+                    new = str(old+mod)
+                    sheetsections[i] = "**Bloodpool:** " + new + "/" + sheetsections[i].split('/')[1]
+                    response = "Stat is now: " + sheetsections[i]
+        elif shobject == "XP":
+            for i in range(len(sheetsections)):
+                if sheetsections[i].startswith("**XP:** "):
+                    old = int(sheetsections[i].split(' ')[1])
+                    new = str(old+mod)
+                    sheetsections[i] = "**XP:** " + new
+                    response = "Stat is now: " + sheetsections[i]
+        else:
+            return response, None
+        newsheet = "\n\n".join(sheetsections)
+        return response, newsheet, oldsheet
+                    
+        
     def print_info(self, message):
         try:
             what = message.content.split(' ')[1].lower()

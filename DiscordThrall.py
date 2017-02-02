@@ -15,7 +15,11 @@ UpdateFrequency = 1800 #rss update frequency, in seconds
 R20BNServer = '239041359384805377'
 Schrecknet = '272633168178446337'
 Fledglings_Channel = '239041359384805377'
+Sheets_Channel = '276364607906643968'
 rss_chan = ['271771293739778058', '270382116322148353']
+
+Permission_Low = "Fledgling"
+Permission_High = "Assistant Storyteller"
 
 class Bot():
     def __init__(self):
@@ -128,6 +132,20 @@ class Bot():
             print("DEBUG: Couldn't read roll [malformed] : " + str(e))  
             return message.channel.id , "I didn't understand this roll request."
             pass
+    
+    def check_role_sufficiency(self,member,role):
+        roles = member.server.role_hierarchy
+        roles.reverse()
+        targetrole = None
+        for role in roles:
+            if role.name == str(role) :
+                targetrole = role
+        if targetrole == None:
+            return None
+        elif targetrole <= member.top_role:
+            return True
+        else:
+            return False
         
     def schrecknetpost(self, message):
         self.log(message)
@@ -163,6 +181,7 @@ class Bot():
         # Here we know the requester has the rights to promote the requestee
         return roles[target_role], target
             
+    
     
     def rss_ready(self):
         if time.time()>self.last_updated+UpdateFrequency:
@@ -220,7 +239,10 @@ class Bot():
         return updates
     
     def print_info(self, message):
-        what = message.content.split(' ')[1].lower()
+        try:
+            what = message.content.split(' ')[1].lower()
+        except:
+            what = "commands"
         if what == "commands":
             return """**List of Commands:**
 Replace any item in [] square brackets with appropriate content.

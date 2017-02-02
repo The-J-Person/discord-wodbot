@@ -11,7 +11,7 @@ Bot = DiscordThrall.Bot()
 async def wait_until_ready():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.WARNING)
-    handler = logging.FileHandler(filename='bot_technical.log', encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename='bot_technical.loggimm', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
@@ -53,7 +53,19 @@ async def on_message(message):
         destination, response = Bot.schrecknetpost(message)
     elif message.content.startswith('!prune '):
         destination = message.channel.id
-        
+        if Bot.check_role_sufficiency(message.author, "Assistant Storyteller") == None:
+            response = "Something is wrong with the Role Hierarchy."
+        elif Bot.check_role_sufficiency(message.author, "Assistant Storyteller") == False:
+            response = "Only staff can prune messages."
+        else:
+            try:
+                to_prune = prune(message)
+                for msg in to_prune:
+                    await client.delete_message(msg)
+                response = "Pruned successfully."
+            except:
+                response = "Some messages couldn't be deleted."
+            
     elif message.content.startswith('!promote '):
         destination = message.channel.id
         role, target = Bot.give_role(message)
@@ -68,6 +80,9 @@ async def on_message(message):
             response = role
     elif message.content.startswith('!help '):
         destination = message.channel.id
+        response = Bot.print_info(message)    
+    elif message.content == 'help!':
+        destination = message.channel.id
         response = Bot.print_info(message)
     else:
         return
@@ -76,15 +91,19 @@ async def on_message(message):
     
     
 @client.event
-async def on_member_join(member):    
+async def on_member_join(member):
+    if member.server != client.get_server(DiscordThrall.R20BNServer):
+        return
     infochannel = client.get_channel(DiscordThrall.Fledglings_Channel)
     await client.send_message(infochannel, 
                               "Welcome to " + member.server.name + ", " + member.name + 
-                              "!  Please check out the pins in " + infochannel.name + 
+                              "!  Please check out the pins in " + infochannel.mention + 
                               " .  It explains about us and how to get into a game!")
     
 @client.event
 async def on_member_remove(member):
+    if member.server != client.get_server(DiscordThrall.R20BNServer):
+        return
     infochannel = client.get_channel(DiscordThrall.Fledglings_Channel)
     await client.send_message(infochannel, member.name + " has left the server.")
         
@@ -104,7 +123,26 @@ async def on_typing(channel,user,when):
             for ch_id in DiscordThrall.rss_chan:
                 chan = client.get_channel(ch_id)
                 await client.send_message(chan,update)
-
+                
+def prune(message):
+    try:
+        target = message.mentions[0]
+    except:
+        return "I don't see a target mentioned."
+    try:
+        parts = message.content.split(' ')
+        num_to_prune = int(parts[2])
+    except:
+        return "The amount to prune seems invalid"
+    history = []
+    for channel in client.get_server(DiscordThrall.R20BNServer).channels:
+        async for msg in client.logs_from(channel, limit=500):
+            if msg.author == target:
+                history.append(msg)
+    sorted_history = sorted(history, key=lambda entry: entry.timestamp)
+    sorted_history.reverse()
+    return sorted_history[:num_to_prune]
+            
 client.run(DiscordToken)
 
 

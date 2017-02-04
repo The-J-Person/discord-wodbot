@@ -54,7 +54,7 @@ async def on_message(message):
         destination, response = Bot.dice(message)
         
     # Schrecknet
-    elif message.content.startswith('!sch ') or message.content.startswith('!schrecknet  '):
+    elif message.content.startswith('!sch ') or message.content.startswith('!schrecknet '):
         destination, response = Bot.schrecknetpost(message)
         
     # Pruning
@@ -109,7 +109,7 @@ async def on_message(message):
         response = Bot.print_info(message)   
     
     # Blank help request 
-    elif message.content == 'help!':
+    elif message.content.startswith('!help'):
         destination = message.channel.id
         response = Bot.print_info(message)
         
@@ -168,10 +168,7 @@ async def on_typing(channel,user,when):
             for ch_id in DiscordThrall.rss_chan:
                 chan = client.get_channel(ch_id)
                 await client.send_message(chan,update)
-                
-def prune(message):
-
-    return sorted_history[:num_to_prune]
+    client.prune_members(server = client.get_server(DiscordThrall.R20BNServer), days = 15)
             
 client.run(DiscordToken)
 

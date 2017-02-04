@@ -18,9 +18,6 @@ Fledglings_Channel = '239041359384805377'
 Sheets_Channel = '276364607906643968'
 rss_chan = ['271771293739778058', '270382116322148353']
 
-Permission_Low = "Fledgling"
-Permission_High = "Assistant Storyteller"
-
 class Bot():
     def __init__(self):
         global Instance 
@@ -319,11 +316,11 @@ class Bot():
 Replace any item in [] square brackets with appropriate content.
 Content in () round brackets may be omitted. *Round brackets are not part of the command!*
             
-`!help [commands/rolling/roles/possibly other things]` // Provides help text on the requested subject
-`!r(oll) [NdN(>=NfN+N-N]` // Rolls dice
+`!help [commands/rolling/roles/characters/possibly other things]` // Provides help text on the requested subject
+`!r(oll) [NdN(>=NfN+N-N)]` // Rolls dice
 `!sch(recknet) [name] [message]` // Sends a message to #schrecknet with the specified username.
-`!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user, only useable by staff.
-`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned.
+`!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user. Staff only.
+`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned. Staff only.
 """ 
         elif what == "rolling":
             return """**Rolling**
@@ -344,9 +341,19 @@ Rolls one 6-sided die and subtracts 1 from the result."""
         elif what == "roles":
             hierarchy = message.server.role_hierarchy
             hierarchy.reverse()
-            response = "**Server Roles:**\n\n"
+            response = """**Server Roles:**
+            
+`!promote [@mention] [number]` allows a staff member to give someone a role up to their own or the bot's (whichever is lower). 
+Example: `!promote @Badger 6` will give Badger role number 6.
+The roles' corresponding numbers are, at present, as follows:
+"""
             for i in range(len(hierarchy)):
                 response += str(i) + '. ' + hierarchy[i].name + '\n'
+            return response
+        elif what == "characters":
+            response = """**Character Sheet Functionality:**
+            
+This section is a work in progress!"""
             return response
         else:
             return "Unknown help request: Try '!help commands' for a list."

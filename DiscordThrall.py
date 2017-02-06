@@ -14,8 +14,13 @@ UpdateFrequency = 1800 #rss update frequency, in seconds
 
 R20BNServer = '239041359384805377'
 Schrecknet = '272633168178446337'
-Fledglings_Channel = '239041359384805377'
+Default_Channel = '239041359384805377'
+Bot_Update_Channel = '277843135193677824'
 Sheets_Channel = '276364607906643968'
+Announce_Channel = '239041359384805377' #'239050929716985856' # Dammit badger! :P
+Gamelist_Channel = '270962496653885451'
+Application_Channel = '277689369488523264'
+Appquestion_Channel = '277689512992309250'
 rss_chan = ['271771293739778058', '270382116322148353']
 
 class Bot():
@@ -144,6 +149,15 @@ class Bot():
         else:
             return False
         
+    def find_role(self,server,role):
+        roles = server.role_hierarchy
+        roles.reverse()
+        targetrole = None
+        for r in roles:
+            if r.name == str(role) :
+                targetrole = r
+        return targetrole
+        
     def schrecknetpost(self, message):
         self.log(message)
         schmsg = message.content.partition(' ')[2]
@@ -240,7 +254,6 @@ class Bot():
     
     def create_character(self,message):
         parts = message.content.split(' ')
-        author = message.author.mention
         name = parts[1]
         gen = int(parts[2])
         wil = int(parts[3])
@@ -305,6 +318,26 @@ class Bot():
         newsheet = "\n\n".join(sheetsections)
         return response, newsheet, oldsheet
                     
+    def greet(self, member, chan):
+        return """Welcome to Roll20 By Night!  
+We are a selective Classic World of Darkness network of games that focus on high roleplay, low rollplay.  
+We are happy to host Classic World of Darkness Games, and eager to grow our community.  
+Please read through """ +  chan.mention + """ to learn about us and the guidelines of our server.  
+When you have reviewed the documents on our announcements page, please say 'I am ready to see the listings'.
+"""
+
+    def accept_newbie(self, member, chan):
+        return "Please review " + chan.mention + " and when you are ready, please say 'I am ready to apply to a game'"
+     
+    def accept_applicant(self, member, applichan ,listchan, questchan):
+        return "In order to apply for a game, please post your application in " + applichan.mention + " after reviewing " + listchan.mention + """  
+ 
+1. Game you would like to join **(Mention the storyteller @)**
+2. Game you observed
+3. A short background of yourself as a player
+4. Character info/miscellaneous
+ 
+Please use """ + questchan.mention + """ for any questions you may have.  You can also direct message the Storytellers directly."""
         
     def print_info(self, message):
         try:
@@ -347,7 +380,7 @@ Rolls one 6-sided die and subtracts 1 from the result."""
 Example: `!promote @Badger 6` will give Badger role number 6.
 The roles' corresponding numbers are, at present, as follows:
 """
-            for i in range(len(hierarchy)):
+            for i in range(1,len(hierarchy)):
                 response += str(i) + '. ' + hierarchy[i].name + '\n'
             return response
         elif what == "characters":

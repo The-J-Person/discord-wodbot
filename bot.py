@@ -23,16 +23,6 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    newbie = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Newbie")
-    applicant = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Applicant")
-    for fella in client.get_server(DiscordThrall.R20BNServer).members:
-        if Bot.check_role_sufficiency(fella, "Player") == True :
-            await client.remove_roles(fella, newbie)
-            await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
-                          "Newbie role removed: " + fella.mention)
-            await client.remove_roles(fella, applicant)
-            await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
-                          "Applicant role removed: " + fella.mention)
 
 #When someone joins the server
 # @client.event

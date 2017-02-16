@@ -3,6 +3,8 @@ import discord
 import DiscordThrall
 import logging
 from keyring import *  # @UnusedWildImport
+from _csv import Error
+from symbol import except_clause
 
 client = discord.Client()
 Bot = DiscordThrall.Bot()
@@ -21,7 +23,16 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    
+    newbie = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Newbie")
+    applicant = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Applicant")
+    for fella in client.get_server(DiscordThrall.R20BNServer).members:
+        if Bot.check_role_sufficiency(fella, "Player") == True :
+            await client.remove_roles(fella, newbie)
+            await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
+                          "Newbie role removed: " + fella.mention)
+            await client.remove_roles(fella, applicant)
+            await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
+                          "Applicant role removed: " + fella.mention)
 
 #When someone joins the server
 # @client.event
@@ -70,23 +81,30 @@ async def on_message(message):
                 try:
                     target = message.mentions[0]
                 except:
-                    return "I don't see a target mentioned."
+                    try:
+                        target = message.content.split(' ')[1]
+                        if target != "offserver":
+                            raise Exception("Neither name nor offserver")
+                        target = None
+                    except:
+                        response = "I don't see a target mentioned."
                 try:
                     parts = message.content.split(' ')
                     num_to_prune = int(parts[2])
                 except:
-                    return "The amount to prune seems invalid"
-                history = []
-                
-                async for msg in client.logs_from(message.channel, limit=500):
-                    if msg.author == target:
-                        history.append(msg)
-                sorted_history = sorted(history, key=lambda entry: entry.timestamp)
-                sorted_history.reverse()
-                
-                for msg in sorted_history[:num_to_prune]:
-                    await client.delete_message(msg)
-                response = "Pruned successfully."
+                    response = "The amount to prune seems invalid"
+                if response is None:
+                    history = []
+                    
+                    async for msg in client.logs_from(message.channel, limit=500):
+                        if msg.server.get_member(msg.author.id) == target:
+                            history.append(msg)
+                    sorted_history = sorted(history, key=lambda entry: entry.timestamp)
+                    sorted_history.reverse()
+                    
+                    for msg in sorted_history[:num_to_prune]:
+                        await client.delete_message(msg)
+                    response = "Pruned successfully."
             except:
                 response = "Some messages couldn't be deleted."
             
@@ -130,6 +148,8 @@ async def on_message(message):
         if newsheet is not None:
             await client.edit_message(oldsheet, newsheet)
             
+    
+    
     # Manual greeting
     elif message.content.startswith('!greet'):
         chan = message.author
@@ -140,11 +160,15 @@ async def on_message(message):
         chan = message.author
         try:
             sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
-            role = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Newbie")
-            await client.add_roles(sender,role)
-            await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
-                                      "New Newbie: " + sender.mention)
-            response = Bot.accept_newbie(sender, client.get_channel(DiscordThrall.Gamelist_Channel))
+            if Bot.check_role_sufficiency(sender, "Newbie") == True:
+                response = "You can already see the listings."
+            else:
+                sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
+                role = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Newbie")
+                await client.add_roles(sender,role)
+                await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
+                                          "New Newbie: " + sender.mention)
+                response = Bot.accept_newbie(sender, client.get_channel(DiscordThrall.Gamelist_Channel))
         except Exception as e:
             print("Error resolving '" + str(message) + "': " + str(e))
             response = "You are not a member of the appropriate server."
@@ -154,7 +178,9 @@ async def on_message(message):
         chan = message.author
         try:
             sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
-            if Bot.check_role_sufficiency(sender, "Newbie") != True:
+            if Bot.check_role_sufficiency(sender, "Player") == True:
+                response = "You are already in a game."
+            elif Bot.check_role_sufficiency(sender, "Newbie") != True:
                 response = "No, you are not."
             else:
                 role = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Applicant")
@@ -172,7 +198,7 @@ async def on_message(message):
     else:
         return
     try:
-        if isinstance(chan, str):
+        if isinstance(destination, str):
             chan = client.get_channel(destination)
     except Exception as e:
         print("The message failing was:" + message.content + "\nThe error is: " + str(e))

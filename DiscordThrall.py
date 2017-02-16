@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import random
 import feedparser
 import time
@@ -21,6 +20,7 @@ Announce_Channel = '239041359384805377' #'239050929716985856' # Dammit badger! :
 Gamelist_Channel = '270962496653885451'
 Application_Channel = '277689369488523264'
 Appquestion_Channel = '277689512992309250'
+Voting_Channel = '278873402209468416'
 rss_chan = ['271771293739778058', '270382116322148353']
 
 class Bot():
@@ -319,7 +319,7 @@ class Bot():
         return response, newsheet, oldsheet
                     
     def greet(self, member, chan):
-        return """Welcome to Roll20 By Night!  
+        return """Welcome to Pineapple Salad!  
 We are a selective Classic World of Darkness network of games that focus on high roleplay, low rollplay.  
 We are happy to host Classic World of Darkness Games, and eager to grow our community.  
 Please read through """ +  chan.mention + """ to learn about us and the guidelines of our server.  
@@ -349,11 +349,20 @@ Please use """ + questchan.mention + """ for any questions you may have.  You ca
 Replace any item in [] square brackets with appropriate content.
 Content in () round brackets may be omitted. *Round brackets are not part of the command!*
             
-`!help [commands/rolling/roles/characters/possibly other things]` // Provides help text on the requested subject
+`!help [commands/rolling/roles/voting/characters/possibly other things]` // Provides help text on the requested subject
 `!r(oll) [NdN(>=NfN+N-N)]` // Rolls dice
 `!sch(recknet) [name] [message]` // Sends a message to #schrecknet with the specified username.
 `!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user. Staff only.
-`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned. Staff only.
+`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned, or **offserver** for pruning messages of users who left the server. Staff only.
+`!greet` // Manually initiate user application process. Should start automatically when user joins.
+**Playlist functionality** runs a process separate from the main one and, as a result, might crash independently :yum:
+`$summon` // Adds the bot to the voice room you are in. Does not work in direct-messaging!
+`$play [link]` // Plays music from given link. See https://rg3.github.io/youtube-dl/supportedsites.html for supported sites.
+`$play ytsearch:[term]` // Searches youtube for [term] and adds the first result to playing queue.
+`$pause` // Pauses audio
+`$resume` // Resumes paused
+`$stop` // Stops and clears playlist
+`$volume [number]` // Sets volume to a given percentage
 """ 
         elif what == "rolling":
             return """**Rolling**

@@ -98,6 +98,9 @@ async def on_message(message):
             except:
                 response = "Some messages couldn't be deleted."
             
+    # Figuring out who is an inactive member
+    #elif message.content.startswith('!inactive '):
+            
     # Role adding
     elif message.content.startswith('!promote '):
         destination = message.channel.id
@@ -109,6 +112,20 @@ async def on_message(message):
             except Exception as e:
                 print(e)
                 response = "I was unable to complete this promotion :'("
+        else:
+            response = role
+            
+    # Role removing
+    elif message.content.startswith('!demote '):
+        destination = message.channel.id
+        role, target = Bot.give_role(message)
+        if target is not None:
+            try:
+                await client.remove_roles(target,role)
+                response = message.mentions[0].name + " is no longer a " + role.name + "!"
+            except Exception as e:
+                print(e)
+                response = "I was unable to complete this demotion :'("
         else:
             response = role
     

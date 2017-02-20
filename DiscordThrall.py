@@ -171,7 +171,7 @@ class Bot():
         try:
             target = message.mentions[0]
         except:
-            return "I don't see who I should promote.", None
+            return "I don't see who I should promote/demote.", None
         try:
             parts = message.content.split(' ')
             target_role = int(parts[2])
@@ -186,9 +186,9 @@ class Bot():
         if AST == None :
             return "It seems the Assistant Storyteller role no longer exists???", None
         if message.author.top_role<AST:
-            return "Only staff can promote.", None
+            return "Only staff can promote/demote.", None
         if message.author.top_role<=roles[target_role]:
-            return "You cannot promote to your top role or higher", None
+            return "You cannot promote/demote to your top role or higher", None
         # Here we know the requester has the rights to promote the requestee
         return roles[target_role], target
             

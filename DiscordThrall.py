@@ -43,7 +43,7 @@ class Bot():
             results.append(self.exploderoll(faces))
         return results
     
-    def rolldice(self, amount, faces, diff = None, botch = None, explode = False, modifier = 0):
+    def rolldice(self, amount, faces, diff = None, botch = None, explode = False, modifier = 0, doubler = False):
         response = "("
         total = 0
         roll_results = []
@@ -62,6 +62,8 @@ class Bot():
                 if result>=diff:
                     response = response + str(result) + " "
                     success += 1
+                    if doubler and result==(faces-1):
+                        success += 1
                 elif botch is not None and result <= botch:
                     response = response + "**" + str(result) + "** "
                     success -= 1
@@ -87,6 +89,7 @@ class Bot():
             diff = None
             botch = None
             explode = False
+            doubler = False
             modifier = 0
             comment = ''
 
@@ -99,6 +102,10 @@ class Bot():
             parsed = the_command
 #             print("DEBUG: Full message is " + message.content)
 #             print("DEBUG: " + parsed)
+            if parsed.find('s') != -1:
+                both = parsed.split('s')
+                doubler = True
+                parsed = both[0]
             if parsed.find('-') != -1:
                 both = parsed.split('-')
                 modifier -= int(both[1])
@@ -127,7 +134,7 @@ class Bot():
             else:
                 return message.channel.id , "I don't see what I should roll."
             # The response is constructed here
-            result = str(message.author.mention) + ': `' + the_command + '`' + comment + ' = ' + self.rolldice(amount, faces, diff, botch, explode, modifier)
+            result = str(message.author.mention) + ': `' + the_command + '`' + comment + ' = ' + self.rolldice(amount, faces, diff, botch, explode, modifier, doubler)
             # End response construction
             return message.channel.id , result
         except Exception as e:
@@ -319,26 +326,28 @@ class Bot():
         return response, newsheet, oldsheet
                     
     def greet(self, member, chan):
-        return """Welcome to Pineapple Salad!  
+        return """Welcome to Roll20 By Night!  
 We are a selective Classic World of Darkness network of games that focus on high roleplay, low rollplay.  
 We are happy to host Classic World of Darkness Games, and eager to grow our community.  
 Please read through """ +  chan.mention + """ to learn about us and the guidelines of our server.  
-When you have reviewed the documents on our announcements page, please say 'I am ready to see the listings'.
+When you have finished, please say 'I am ready to see the listings'
+**Remove the 's.  Please note that it is case sensitive.**.
 """
 
-    def accept_newbie(self, member, chan):
-        return "Please review " + chan.mention + " and when you are ready, please say 'I am ready to apply to a game'"
+#     def accept_newbie(self, member, chan):
+#         return "Please review " + chan.mention + " and when you are ready, please say 'I am ready to apply to a game'"
      
     def accept_applicant(self, member, applichan ,listchan, questchan):
-        return "In order to apply for a game, please post your application in " + applichan.mention + " after reviewing " + listchan.mention + """  
- 
-1. Game you would like to join **(Mention the storyteller @)**
-2. Game you observed
-3. A short background of yourself as a player
-4. Character info/miscellaneous
- 
-Please use """ + questchan.mention + """ for any questions you may have.  You can also direct message the Storytellers directly."""
-        
+        return "Please review " + listchan.mention + " . If you have questions, please ask them in " + applichan.mention +""" , making sure to **mention the pertinent Storyteller @**
+
+Once you are ready to apply for a game, please post the following in """ + applichan.mention + """:
+
+1. Game you would like to join **(Mention the Storyteller @)**
+2. Have you observed a Roll20 By Night game session yet?  If so, which game?
+3. A Short background of yourself as a player
+4. What type of characters and roleplay you generally enjoy
+
+**Please note, some Storytellers make some of their text channels viewable to applicants.  If you have any questions, please ask them in """ + questchan.mention + " and mention the Storyteller.** "
     def print_info(self, message):
         try:
             what = message.content.split(' ')[1].lower()

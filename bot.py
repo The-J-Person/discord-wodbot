@@ -3,8 +3,6 @@ import discord
 import DiscordThrall
 import logging
 from keyring import *  # @UnusedWildImport
-from _csv import Error
-from symbol import except_clause
 
 client = discord.Client()
 Bot = DiscordThrall.Bot()
@@ -163,32 +161,30 @@ async def on_message(message):
         response = Bot.greet(message.author, client.get_channel(DiscordThrall.Announce_Channel))
     
     # Promoting to Newbie
-    elif message.content.startswith('I am ready to see the listings'):
-        chan = message.author
-        try:
-            sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
-            if Bot.check_role_sufficiency(sender, "Newbie") == True:
-                response = "You can already see the listings."
-            else:
-                sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
-                role = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Newbie")
-                await client.add_roles(sender,role)
-                await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
-                                          "New Newbie: " + sender.mention)
-                response = Bot.accept_newbie(sender, client.get_channel(DiscordThrall.Gamelist_Channel))
-        except Exception as e:
-            print("Error resolving '" + str(message) + "': " + str(e))
-            response = "You are not a member of the appropriate server."
+#     elif message.content.startswith('I am ready to see the listings'):
+#         chan = message.author
+#         try:
+#             sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
+#             if Bot.check_role_sufficiency(sender, "Newbie") == True:
+#                 response = "You can already see the listings."
+#             else:
+#                 sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
+#                 role = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Newbie")
+#                 await client.add_roles(sender,role)
+#                 await client.send_message(client.get_channel(DiscordThrall.Bot_Update_Channel), 
+#                                           "New Newbie: " + sender.mention)
+#                 response = Bot.accept_newbie(sender, client.get_channel(DiscordThrall.Gamelist_Channel))
+#         except Exception as e:
+#             print("Error resolving '" + str(message) + "': " + str(e))
+#             response = "You are not a member of the appropriate server."
         
     # Promoting to Applicant
-    elif message.content.startswith('I am ready to apply to a game'):
+    elif message.content.startswith('I am ready to see the listings'):
         chan = message.author
         try:
             sender = client.get_server(DiscordThrall.R20BNServer).get_member(message.author.id)
             if Bot.check_role_sufficiency(sender, "Player") == True:
                 response = "You are already in a game."
-            elif Bot.check_role_sufficiency(sender, "Newbie") != True:
-                response = "No, you are not."
             else:
                 role = Bot.find_role(client.get_server(DiscordThrall.R20BNServer), "Applicant")
                 await client.add_roles(sender,role)

@@ -60,9 +60,11 @@ class Bot():
             success = 0
             for result in roll_results:
                 if result>=diff:
-                    response = response + str(result) + " "
-                    success += 1
-                    if doubler and result==(faces-1):
+                    if doubler and result==faces:
+                        success += 2
+                        response = response + "__" + str(result) + "__ "
+                    else:
+                        response = response + str(result) + " "
                         success += 1
                 elif botch is not None and result <= botch:
                     response = response + "**" + str(result) + "** "
@@ -377,11 +379,12 @@ Content in () round brackets may be omitted. *Round brackets are not part of the
             return """**Rolling**
             
 Format:
-`!r(oll) [AdB(>=CfD+E-F)]`
+`!r(oll) [AdB(>=CfD+E-Fs)]`
 Rolls A dice with B faces.
 Optionally, counting successes for results higher than C, 
 Botching on D and lower, 
 Adding E to the result and/or subtracting F from it. 
+If **s** is added at the end, any maximum result will be counted as two successes.
 Examples: 
 `!roll 6d10>=7f1+1 `
 Rolls a dice pool of six 10-sided dice at difficulty 7, subtracts any 1s from the number of successes, and adds 1 to the total (presumably willpower spent)

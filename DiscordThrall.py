@@ -1,6 +1,8 @@
 import random
 import feedparser
 import time
+from DiscordCharacters import WoDCharacter
+import os.path
 from discord import message
 
 # list of feeds to pull down
@@ -15,19 +17,25 @@ R20BNServer = '239041359384805377'
 Schrecknet = '272633168178446337'
 Default_Channel = '239041359384805377'
 Bot_Update_Channel = '277843135193677824'
-Sheets_Channel = '276364607906643968'
+Sheets_Channel = '293805465647841280' # '276364607906643968' # Deprecated?
 Announce_Channel = '239041359384805377' #'239050929716985856' # Dammit badger! :P
 Gamelist_Channel = '270962496653885451'
 Application_Channel = '277689369488523264'
 Appquestion_Channel = '277689512992309250'
 Voting_Channel = '278873402209468416'
+Character_List = '293820268449628161' # This is a message ID!
 rss_chan = ['271771293739778058', '270382116322148353']
 
 class Bot():
     def __init__(self):
-        global Instance 
-        Instance = self
+        self.characters = []
         self.last_updated = time.time()-UpdateFrequency
+        sheets = []
+        for filename in os.listdir('../sheets'):
+            if filename.endswith(".txt"):
+                f = open('../sheets/'+filename)
+                sheets.append(WoDCharacter(f.read()))
+                f.close()
         
     def log(self,message):
         logfile = open('log.txt','a+')
@@ -263,18 +271,18 @@ class Bot():
     
     def create_character(self,message):
         parts = message.content.split(' ')
-        name = parts[1]
-        gen = int(parts[2])
-        wil = int(parts[3])
-        sheet = []
-        sheet.append("**Owner:** " + message.author.mention)
-        sheet.append("**Name:** " + name)
-        sheet.append("**Generation:** " + str(gen))
-        sheet.append("**Bloodpool:** " + str(int((23-gen)/2)) + "/" + str(23-gen))
-        sheet.append("**Willpower:** " + str(wil) + "/" + str(wil))
-        sheet.append("**XP:** 0")
-        return name + " was probably created successfully.","\n\n".join(sheet)
-        
+        if len(parts)<1:
+            return "Name missing."
+        name = parts[1].lower()
+        if os.path.isfile("../sheets/"+name+".txt"):
+            return "This name is already taken. Pick another!"
+        character = WoDCharacter(name,message.author.mention)
+        if len(parts)>1:
+            character.template(parts[2].capitalize())
+        charfile = open("../sheets/"+name+".txt","w")
+        charfile.write(str(character))
+        charfile.close()
+        return "Character created successfully."
     
     def character_handling(self,message,sheets):
         parts = message.content.split(' ')
@@ -366,15 +374,20 @@ Content in () round brackets may be omitted. *Round brackets are not part of the
 `!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user. Staff only.
 `!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned, or **offserver** for pruning messages of users who left the server. Staff only.
 `!greet` // Manually initiate user application process. Should start automatically when user joins.
-**Playlist functionality** runs a process separate from the main one and, as a result, might crash independently :yum:
-`$summon` // Adds the bot to the voice room you are in. Does not work in direct-messaging!
-`$play [link]` // Plays music from given link. See https://rg3.github.io/youtube-dl/supportedsites.html for supported sites.
-`$play ytsearch:[term]` // Searches youtube for [term] and adds the first result to playing queue.
-`$pause` // Pauses audio
-`$resume` // Resumes paused
-`$stop` // Stops and clears playlist
-`$volume [number]` // Sets volume to a given percentage
-""" 
+**Character Sheet functionality**
+`!create [name] [type]` // Creates a new character sheet with the supplied name and type (ex Bob the Vampire)
+`!c(har) [name] [command] [more stuff]` // Using Character Sheet functionality. See `!help characters` for more info.
+"""
+# + """
+# **Playlist functionality** runs a process separate from the main one and, as a result, might crash independently :yum:
+# `$summon` // Adds the bot to the voice room you are in. Does not work in direct-messaging!
+# `$play [link]` // Plays music from given link. See https://rg3.github.io/youtube-dl/supportedsites.html for supported sites.
+# `$play ytsearch:[term]` // Searches youtube for [term] and adds the first result to playing queue.
+# `$pause` // Pauses audio
+# `$resume` // Resumes paused
+# `$stop` // Stops and clears playlist
+# `$volume [number]` // Sets volume to a given percentage
+# """ 
         elif what == "rolling":
             return """**Rolling**
             

@@ -1,19 +1,20 @@
 #!/usr/bin/python3
 import discord
 import DiscordThrall
-import logging
+#import logging
 from keyring import *  # @UnusedWildImport
 
 client = discord.Client()
 Bot = DiscordThrall.Bot()
 
-@client.event
-async def wait_until_ready():
-    logger = logging.getLogger('discord')
-    logger.setLevel(logging.WARNING)
-    handler = logging.FileHandler(filename='bot_technical.loggimm', encoding='utf-8', mode='w')
-    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-    logger.addHandler(handler)
+# This doesn't work. Why?
+# @client.event
+# async def wait_until_ready():
+#     logger = logging.getLogger('discord')
+#     logger.setLevel(logging.WARNING)
+#     handler = logging.FileHandler(filename='bot_technical.loggimm', encoding='utf-8', mode='w')
+#     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+#     logger.addHandler(handler)
 
 @client.event
 async def on_ready():

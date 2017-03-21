@@ -96,7 +96,7 @@ class WoDCharacter:
         key = ""
         cat = ""
         for category in self.stats.keys():
-            for entry in category.keys():
+            for entry in self.stats[category].keys():
                 if entry == stat.capitalize():
                     key = entry
                     cat = category
@@ -107,6 +107,42 @@ class WoDCharacter:
             return "The character lacks this stat.\n*Check spelling or add a new stat*."
         self.stats[cat][key] = int(level)
         return stat.capitalize() + " set to " + level + " for " + self.name + "!"
+    def get_numeric_stat(self,stat):
+        key = ""
+        cat = ""
+        for category in self.stats.keys():
+            for entry in self.stats[category].keys():
+                if entry == stat.capitalize():
+                    key = entry
+                    cat = category
+                    break
+            if key != "":
+                break
+        if key == "":
+            for entry in self.resources.keys():
+                if entry == stat.capitalize():
+                    key = entry
+                    cat = "resource"
+                    break
+        if key == "":
+            return "The character lacks this stat or resource.\n*Check spelling or add a new one*."
+        total = 0
+        if cat != "resource":
+            total += self.stats[cat][stat]
+        else:
+            total +=self.resources[stat][1]
+        try:
+            total += self.buffs[stat]
+        except:
+            pass
+        return total
+    def get_dice_pool(self,stats):
+        if isinstance(stats, str):
+            stats = stats.split('+')
+        total = 0
+        for stat in stats:
+            total += self.get_numeric_stat(stat)
+        return total
     def create_resource(self,rsrc):
         self.resources[rsrc] = [1,1]
     def remove_resource(self,rsrc):
@@ -116,9 +152,9 @@ class WoDCharacter:
         return rsrc + " set to " + amount + "/" + str(self.resources[rsrc][1]) + " for " + self.name + "!"
     def set_resource_capacity(self,rsrc,amount):
         self.resources[rsrc][1] = int(amount)
-    def consume_resource(self,rsrc,amount):
+    def consume_resource(self,rsrc,amount=1):
         self.resources[rsrc][0] -= int(amount)
-    def restore_resource(self,rsrc,amount):
+    def restore_resource(self,rsrc,amount=1):
         self.resources[rsrc][0] += int(amount)
     def reset_resource(self,rsrc):
         self.resources[rsrc][0] = self.resources[rsrc][1]
@@ -137,7 +173,7 @@ class WoDCharacter:
         key = ""
         cat = ""
         for category in self.stats.keys():
-            for entry in category.keys():
+            for entry in self.stats[category].keys():
                 if entry == stat.capitalize():
                     key = entry
                     cat = category

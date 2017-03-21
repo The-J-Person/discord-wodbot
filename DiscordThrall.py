@@ -30,11 +30,11 @@ class Bot():
     def __init__(self):
         self.characters = []
         self.last_updated = time.time()-UpdateFrequency
-        sheets = []
+        self.sheets = []
         for filename in os.listdir('../sheets'):
             if filename.endswith(".txt"):
                 f = open('../sheets/'+filename)
-                sheets.append(WoDCharacter(f.read()))
+                self.sheets.append(WoDCharacter(f.read()))
                 f.close()
         
     def log(self,message):
@@ -90,6 +90,62 @@ class Bot():
             modifier = ""
         return response + ") " + str(modifier) + " = " + str(total)
     
+    def parse_dieroll(self,exp):
+        try:
+            result = ""
+            amount = 0
+            faces = 0
+            diff = None
+            botch = None
+            explode = False
+            doubler = False
+            modifier = 0
+            the_command = ""
+            the_command = exp.replace('!roll ','').replace('!r ','')
+            if the_command.find('#') != -1:
+                the_command = the_command.split('#')[0]
+            the_command = the_command.replace(' ','')
+            parsed = the_command
+#             print("DEBUG: Full message is " + message.content)
+#             print("DEBUG: " + parsed)
+            if parsed.find('s') != -1:
+                both = parsed.split('s')
+                doubler = True
+                parsed = both[0]
+            if parsed.find('-') != -1:
+                both = parsed.split('-')
+                modifier -= int(both[1])
+                parsed = both[0]
+            if parsed.find('+') != -1:
+                both = parsed.split('+')
+                modifier += int(both[1])
+                parsed = both[0]
+            if parsed.find('f') != -1:
+                both = parsed.split('f')
+                botch = int(both[1])
+                parsed = both[0]
+            if parsed.find('>=') != -1:
+                both = parsed.split('>=')
+                diff = int(both[1])
+                parsed = both[0]
+            if parsed.find('>') != -1:
+                both = parsed.split('>')
+                diff = int(both[1])+1
+                parsed = both[0]
+            if parsed.find('d') != -1:
+                both = parsed.split('d')
+                faces = int(both[1])
+                amount = int(both[0])
+                
+            else:
+                return "I don't see what I should roll."
+            # The response is constructed here
+            return self.rolldice(amount, faces, diff, botch, explode, modifier, doubler)
+        except Exception as e:
+            print("DEBUG: Couldn't read roll [malformed] : " + str(e))  
+            return "I didn't understand this roll request."
+            pass
+    
     def dice(self, message):
         self.log(message)
         try:
@@ -102,7 +158,7 @@ class Bot():
             doubler = False
             modifier = 0
             comment = ''
-
+            the_command = ""
             the_command = message.content.replace('!roll ','').replace('!r ','')
             if the_command.find('#') != -1:
                 both = the_command.split('#')
@@ -183,6 +239,7 @@ class Bot():
         return Schrecknet, schname+schmsg
     
     def give_role(self, message):
+        self.log(message)
         if message.server == None:
             return "Please use this command on the server.", None
         try:
@@ -266,74 +323,70 @@ class Bot():
 #         return None
         return updates
     
-    def parse_sheet(self):
-        return None
-    
     def create_character(self,message):
+        self.log(message)
         parts = message.content.split(' ')
-        if len(parts)<1:
-            return "Name missing."
+        if len(parts)<2:
+            return "Name missing.", None
         name = parts[1].lower()
         if os.path.isfile("../sheets/"+name+".txt"):
-            return "This name is already taken. Pick another!"
+            return "This name is already taken. Pick another!", None
         character = WoDCharacter(name,message.author.mention)
-        if len(parts)>1:
+        if len(parts)>2:
             character.template(parts[2].capitalize())
         charfile = open("../sheets/"+name+".txt","w")
         charfile.write(str(character))
         charfile.close()
-        return "Character created successfully."
+        return "Character created successfully.", name.capitalize()
     
-    def character_handling(self,message,sheets):
+    def character_handling(self,message):
+        self.log(message)
         parts = message.content.split(' ')
-        name = parts[1]
-        command = parts[2]
-        shobject = parts[3]
-        sheetsections = None
-        for sheet in sheets:
-            sections = sheet.content.split('\n\n')
-            for section in sections:
-                if section.startswith("**Name:**") and section.split(' ')[1] == name:
-                    sheetsections = sections
-                    oldsheet = sheet
-                    break
-            if sheetsections is not None:
-                break
-        if sheetsections is None:
-            return "Not found", None
+        private = False
+        del parts[0]
+        if len(parts)<1:
+            return "Name missing.", private
+        name = parts[0].lower()
+        del parts[0]
+        if len(parts)<1:
+            return "Command missing.", private
+        command = parts[0].lower()
+        del parts[0]
+        character = None
+        for sheet in self.sheets:
+            if sheet.name == name:
+                character = sheet
+        sheet_object = None
+        if len(parts)>=1:
+            sheet_object = " ".join(parts)
         response = "There was some error."
-        mod = 0
-        if command == "use":
-            mod = -1
-        elif command == "add":
-            mod = 1
+        if command=="set":
+            pass
+        elif command=="get":
+            pass
+        elif command=="edit":
+            pass
+        elif command=="use":
+            pass
+        elif command=="add":
+            pass
+        elif command=="reset":
+            pass
+        elif command=="buff":
+            pass
+        elif command=="pickup":
+            pass
+        elif command=="drop":
+            pass
+        elif command=="roll":
+            pool = str(character.get_dice_pool(sheet_object))
+            return self.parse_dieroll(pool + "d10>=6f1 # rolling " + sheet_object + "for " + name), private
         else:
-            mod = 0
-        if shobject == "will":
-            for i in range(len(sheetsections)):
-                if sheetsections[i].startswith("**Willpower:** "):
-                    old = int(sheetsections[i].split(' ')[1].split('/')[0])
-                    new = str(old+mod)
-                    sheetsections[i] = "**Willpower:** " + new + "/" + sheetsections[i].split('/')[1]
-                    response = "Stat is now: " + sheetsections[i]
-        elif shobject == "blood":
-            for i in range(len(sheetsections)):
-                if sheetsections[i].startswith("**Bloodpool:** "):
-                    old = int(sheetsections[i].split(' ')[1].split('/')[0])
-                    new = str(old+mod)
-                    sheetsections[i] = "**Bloodpool:** " + new + "/" + sheetsections[i].split('/')[1]
-                    response = "Stat is now: " + sheetsections[i]
-        elif shobject == "XP":
-            for i in range(len(sheetsections)):
-                if sheetsections[i].startswith("**XP:** "):
-                    old = int(sheetsections[i].split(' ')[1])
-                    new = str(old+mod)
-                    sheetsections[i] = "**XP:** " + new
-                    response = "Stat is now: " + sheetsections[i]
-        else:
-            return response, None
-        newsheet = "\n\n".join(sheetsections)
-        return response, newsheet, oldsheet
+            return "Unrecognized command", private
+        
+        # Update sheet?
+
+        return response, private
                     
     def greet(self, member, chan):
         return """Welcome to Roll20 By Night!  

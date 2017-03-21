@@ -141,20 +141,18 @@ async def on_message(message):
     # Character sheet creation
     elif message.content.startswith('!create '):
         destination = message.channel.id
-        response, sheet = Bot.create_character(message)
-        await client.send_message(client.get_channel(DiscordThrall.Sheets_Channel), sheet)
+        response, name = Bot.create_character(message)
+        if name != None:
+            charlist = await client.get_message(client.get_channel(DiscordThrall.Sheets_Channel), DiscordThrall.Character_List)
+            await client.edit_message(charlist, charlist.content+"\n"+name+":"+message.author.mention)
         
     # Character sheet functionality
     elif message.content.startswith('!char '):
-        destination = message.channel.id
-        sheets = []
-        async for msg in client.logs_from(client.get_channel(DiscordThrall.Sheets_Channel), limit=500):
-            sheets.append(msg)
-        response, newsheet, oldsheet = Bot.character_handling(message,sheets)
-        if newsheet is not None:
-            await client.edit_message(oldsheet, newsheet)
-            
-    
+        response,private = Bot.character_handling(message)
+        if private:
+            chan = message.author
+        else:
+            chan = message.channel
     
     # Manual greeting
     elif message.content.startswith('!greet'):

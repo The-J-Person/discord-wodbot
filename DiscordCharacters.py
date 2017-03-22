@@ -92,6 +92,18 @@ class WoDCharacter:
     def set_description(self,desc,content):
         self.descriptions[desc.capitalize()] = content
         return desc.capitalize() + " set for " + self.name + "!"
+    def add_stat_category(self,cat_name):
+        if cat_name.capitalize() in self.stats:
+            return "Already exists."
+        self.stats[cat_name.capitalize()] = {}
+        return "Created successfully."
+    def add_stat(self, category, name):
+        if category.capitalize() not in self.stats:
+            return "You don't have such a stat category."
+        if name.capitalize() in self.stats[category]:
+            return "This stat already exists."
+        self.stats[category.capitalize()][name.capitalize()] = 0
+        return "Created successfully."
     def set_stat(self,stat,level):
         key = ""
         cat = ""
@@ -144,23 +156,33 @@ class WoDCharacter:
             total += self.get_numeric_stat(stat)
         return total
     def create_resource(self,rsrc):
-        self.resources[rsrc] = [1,1]
+        self.resources[rsrc.capitalize()] = [1,1]
     def remove_resource(self,rsrc):
-        del self.resources[rsrc]
+        del self.resources[rsrc.capitalize()]
     def set_resource(self,rsrc,amount):
-        self.resources[rsrc][0] = int(amount)    
+        self.resources[rsrc.capitalize()][0] = int(amount)    
         return rsrc + " set to " + amount + "/" + str(self.resources[rsrc][1]) + " for " + self.name + "!"
     def set_resource_capacity(self,rsrc,amount):
-        self.resources[rsrc][1] = int(amount)
+        self.resources[rsrc.capitalize()][1] = int(amount)
     def consume_resource(self,rsrc,amount=1):
-        self.resources[rsrc][0] -= int(amount)
+        self.resources[rsrc.capitalize()][0] -= int(amount)
     def restore_resource(self,rsrc,amount=1):
-        self.resources[rsrc][0] += int(amount)
+        self.resources[rsrc.capitalize()][0] += int(amount)
     def reset_resource(self,rsrc):
-        self.resources[rsrc][0] = self.resources[rsrc][1]
+        if rsrc.capitalize() == "All":
+            self.reset_all_resource()
+        elif rsrc.capitalize() == "Buffs":
+            self.reset_buffs()
+        else:
+            self.resources[rsrc.capitalize()][0] = self.resources[rsrc.capitalize()][1]
     def reset_all_resource(self):
         for rsrc in self.resources.keys():
                 self.resources[rsrc][0] = self.resources[rsrc][1]
+    def create_arsenal(self,arsenal):
+        if arsenal.capitalize() in self.arsenals:
+            return "Already exists."
+        self.arsenals[arsenal.capitalize()] = []
+        return "Created successfully."
     def remove_arsenal(self, arsenal):
         del self.arsenals[arsenal]
     def add_item_to_arsenal(self,arsenal,item):
@@ -198,6 +220,8 @@ class WoDCharacter:
         return stat + " buffed by to " + str(total) + "for " + self.name + "!"
     def get_property(self,prop):
         prop = prop.capitalize()
+        if prop == "All" or prop == "Sheet":
+            return str(self)
         for description in self.descriptions.keys():
             if description == prop:
                 return self.name + "'s " + prop + ": " + self.descriptions[prop] 
@@ -217,6 +241,32 @@ class WoDCharacter:
         for arsenal in self.arsenals.keys():
             if arsenal == prop:
                 return self.arsenals[prop]
+        return "Could not find " + prop + "for " + self.name
+    
+    def set_property(self,prop,value):
+        prop = prop.capitalize()
+        for description in self.descriptions.keys():
+            if description == prop:
+                self.descriptions[prop] = value
+                return "Successfully changed."
+        for category in self.stats.keys():
+            for stat in self.stats[category].keys():
+                if stat == prop:
+                    try:
+                        self.stats[category][prop] = int(value)
+                    except:
+                        return "Error: Could not determine number value."
+                    return "Successfully changed."
+        for resource in self.resources.keys():
+            if resource == prop:
+                try:
+                    self.resources[prop][0] = int(value)
+                except:
+                    return "Error: Could not determine number value."
+                return "Successfully changed."
+        for arsenal in self.arsenals.keys():
+            if arsenal == prop:
+                return "Error: Arsenals can not be 'set'."
         return "Could not find " + prop + "for " + self.name
     
     def template(self,ttype):
@@ -301,7 +351,7 @@ class WoDCharacter:
                     self.stats[stats[i].strip(' *:_')][element.split(' ')[0].strip(' *:_')] = int(element.split(' ')[1])
             for line in resources:
                 linepts = line.partition(' ')
-                self.resources[linepts[0].strip(' *:_')] = [linepts[2].split('/')[0],linepts[2].split('/')[1]]
+                self.resources[linepts[0].strip(' *:_')] = [int(linepts[2].split('/')[0]),int(linepts[2].split('/')[1])]
             for line in arsenals:
                 linepts = line.partition(' ')
                 self.arsenals[linepts[0].strip(' *:_')] = []

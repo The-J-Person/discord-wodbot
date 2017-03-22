@@ -148,7 +148,7 @@ async def on_message(message):
             await client.edit_message(charlist, charlist.content+"\n"+name+":"+message.author.mention)
         
     # Character sheet functionality
-    elif message.content.startswith('!char '):
+    elif message.content.startswith('!char ') or message.content.startswith('!c '):
         response,private = Bot.character_handling(message)
         if private:
             chan = message.author

@@ -153,65 +153,8 @@ class Bot():
     
     def dice(self, message):
         self.log(message)
-        try:
-            result = ""
-            amount = 0
-            faces = 0
-            diff = None
-            botch = None
-            explode = False
-            doubler = False
-            modifier = 0
-            comment = ''
-            the_command = ""
-            the_command = message.content.replace('!roll ','').replace('!r ','')
-            if the_command.find('#') != -1:
-                both = the_command.split('#')
-                the_command = both[0]
-                comment = both[1]
-            the_command = the_command.replace(' ','')
-            parsed = the_command
-#             print("DEBUG: Full message is " + message.content)
-#             print("DEBUG: " + parsed)
-            if parsed.find('s') != -1:
-                both = parsed.split('s')
-                doubler = True
-                parsed = both[0]
-            if parsed.find('-') != -1:
-                both = parsed.split('-')
-                modifier -= int(both[1])
-                parsed = both[0]
-            if parsed.find('+') != -1:
-                both = parsed.split('+')
-                modifier += int(both[1])
-                parsed = both[0]
-            if parsed.find('f') != -1:
-                both = parsed.split('f')
-                botch = int(both[1])
-                parsed = both[0]
-            if parsed.find('>=') != -1:
-                both = parsed.split('>=')
-                diff = int(both[1])
-                parsed = both[0]
-            if parsed.find('>') != -1:
-                both = parsed.split('>')
-                diff = int(both[1])+1
-                parsed = both[0]
-            if parsed.find('d') != -1:
-                both = parsed.split('d')
-                faces = int(both[1])
-                amount = int(both[0])
-                
-            else:
-                return "I don't see what I should roll."
-            # The response is constructed here
-            result = str(message.author.mention) + ': `' + the_command + '`' + comment + ' = ' + self.rolldice(amount, faces, diff, botch, explode, modifier, doubler)
-            # End response construction
-            return result
-        except Exception as e:
-            print("DEBUG: Couldn't read roll [malformed] : " + str(e))  
-            return "I didn't understand this roll request."
-            pass
+        the_command = message.content.replace('!roll ','').replace('!r ','')
+        return self.parse_dieroll(the_command, message.author.mention)
     
     def check_role_sufficiency(self,member,role):
         roles = member.server.role_hierarchy
@@ -288,6 +231,11 @@ class Bot():
         charfile.close()
         return "Character created successfully.", name.capitalize()
     
+    def character_update(self,character):
+        charfile = open('../sheets/'+character.name+'.txt','w')
+        charfile.write(str(character))
+        charfile.close()
+    
     def character_handling(self,message):
         self.log(message)
         parts = message.content.split(' ')
@@ -310,26 +258,113 @@ class Bot():
             sheet_object = " ".join(parts)
         response = "There was some error."
         if command=="set":
-            pass
-        elif command=="get":
-            pass
-        elif command=="edit":
-            pass
+            thing = sheet_object.split(' ')[0].capitalize()
+            value = sheet_object.split(' ')[1]
+            if thing == "Name":
+                return "Character renaming is not currently supported.", private
+#                 if os.path.isfile("../sheets/"+value+".txt"):
+#                     return "This name is already taken. Pick another!", private
+#                 character.name = value
+#                 os.rename("../sheets/"+name+".txt")
+#                    # Some action to change the character list?
+#                 Return "Character renamed."
+            elif thing == "Owner":
+                return "Character owner transfer is not currently supported.", private
+            elif thing == "St" or thing == "Storyteller":
+                try:
+                    character.set_st = message.mentions[0].mention
+                except:
+                    return "Please mention the ST you wish to set for this character."
+                response = "Storyteller set!"
+            else:
+                response = character.set_property(thing,value)
+            self.character_update(character)
+        elif command=="max":
+            try:
+                character.set_resource_capacity(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                self.character_update(character)
+                response = "New maximum for " + sheet_object.split(' ')[0] + " set on " + character.name.capitalize() + "!"
+            except:
+                response = "Could not set capacity. Check spelling or report an error!"
+        elif command=="get" or command=="show":
+            private = True
+            return character.get_property(sheet_object), private
         elif command=="use":
-            pass
+            if len(sheet_object.split(' '))>1:
+                try:
+                    character.consume_resource(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                except:
+                    return "Error consuming this resource."
+            else:
+                try:
+                    response = character.consume_resource(sheet_object)
+                except:
+                    return "Error consuming this resource."
+            response = character.get_property(sheet_object.split(' ')[0])
+            private = True
+            self.character_update(character)
+                
         elif command=="add":
-            pass
+            if len(sheet_object.split(' '))>1:
+                try:
+                    character.restore_resource(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                except:
+                    return "Error replenishing this resource."
+            else:
+                try:
+                    response = character.restore_resource(sheet_object)
+                except:
+                    return "Error replenishing this resource."
+            response = character.get_property(sheet_object.split(' ')[0])
+            private = True
+            self.character_update(character)
         elif command=="reset":
-            pass
+            try:
+                character.reset_resource(sheet_object)
+            except:
+                return "Error resetting this resource."
+            response = character.get_property(sheet_object.split(' ')[0])
+            private = True
+            self.character_update(character)
         elif command=="buff":
-            pass
+            response = character.add_buff(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+            private = True
+            self.character_update(character)
         elif command=="pickup":
             pass
         elif command=="drop":
             pass
         elif command=="roll":
-            pool = str(character.get_dice_pool(sheet_object))
-            return self.parse_dieroll(pool + "d10>=6f1 # rolling " + sheet_object + "for " + name,character.owner), private
+            rolltext = ""
+            if len(sheet_object.split(' ')) > 1:
+                extras = ""
+                to_roll = sheet_object.partition(' ')
+                pool = str(character.get_dice_pool(to_roll[0]))
+                if '>' in to_roll[2]:
+                    extras = to_roll[2]
+                elif 'diff' in to_roll[2]:
+                    extras = ">=" + to_roll[2].replace('diff ','').split(' ')[0]
+                    more = to_roll[2].partition(' ')[2]
+                    if 'p' not in more:
+                        extras += "f1"
+                    if 'w' in more:
+                        extras += "+1"
+                    if 's' in more:
+                        extras += "s"
+                else:
+                    extras = ">=6"
+                    if 'p' not in to_roll[2]:
+                        extras += "f1"
+                    if 'w' in to_roll[2]:
+                        extras += "+1"
+                    if 's' in to_roll[2]:
+                        extras += "s"
+                rolltext = pool + "d10" + extras + " # rolling " + to_roll[0] + " for " + name
+            else:
+                rolltext = str(character.get_dice_pool(sheet_object)) + "d10>=6f1 # rolling " + sheet_object + " for " + name
+            return self.parse_dieroll(rolltext,character.owner), private
+        elif command=="extend":
+            pass
         else:
             return "Unrecognized command", private
         

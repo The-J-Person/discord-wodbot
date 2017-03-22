@@ -52,7 +52,8 @@ async def on_message(message):
         
     # Rolling
     elif message.content.startswith('!r ') or message.content.startswith('!roll '):
-        destination, response = Bot.dice(message)
+        chan = message.channel
+        response = Bot.dice(message)
         
     # Schrecknet
     elif message.content.startswith('!sch ') or message.content.startswith('!schrecknet '):

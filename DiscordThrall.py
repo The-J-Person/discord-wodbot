@@ -90,9 +90,13 @@ class Bot():
             modifier = ""
         return response + ") " + str(modifier) + " = " + str(total)
     
-    def parse_dieroll(self,exp):
+    def parse_dieroll(self,exp,target=None):
         try:
-            result = ""
+            if target!=None:
+                target += ": `"
+            else:
+                target = ""
+            comment = ""
             amount = 0
             faces = 0
             diff = None
@@ -103,7 +107,9 @@ class Bot():
             the_command = ""
             the_command = exp.replace('!roll ','').replace('!r ','')
             if the_command.find('#') != -1:
-                the_command = the_command.split('#')[0]
+                both = the_command.partition('#')
+                the_command = both[0]
+                comment = both[2]
             the_command = the_command.replace(' ','')
             parsed = the_command
 #             print("DEBUG: Full message is " + message.content)
@@ -139,8 +145,7 @@ class Bot():
                 
             else:
                 return "I don't see what I should roll."
-            # The response is constructed here
-            return self.rolldice(amount, faces, diff, botch, explode, modifier, doubler)
+            return target + the_command + '`' + comment + ' = ' + self.rolldice(amount, faces, diff, botch, explode, modifier, doubler)
         except Exception as e:
             print("DEBUG: Couldn't read roll [malformed] : " + str(e))  
             return "I didn't understand this roll request."
@@ -198,14 +203,14 @@ class Bot():
                 amount = int(both[0])
                 
             else:
-                return message.channel.id , "I don't see what I should roll."
+                return "I don't see what I should roll."
             # The response is constructed here
             result = str(message.author.mention) + ': `' + the_command + '`' + comment + ' = ' + self.rolldice(amount, faces, diff, botch, explode, modifier, doubler)
             # End response construction
-            return message.channel.id , result
+            return result
         except Exception as e:
             print("DEBUG: Couldn't read roll [malformed] : " + str(e))  
-            return message.channel.id , "I didn't understand this roll request."
+            return "I didn't understand this roll request."
             pass
     
     def check_role_sufficiency(self,member,role):
@@ -266,63 +271,7 @@ class Bot():
         # Here we know the requester has the rights to promote the requestee
         return roles[target_role], target
             
-    
-    
-    def rss_ready(self):
-        if time.time()>self.last_updated+UpdateFrequency:
-            return True
-        return False
-    
-    def rss_update(self,rss_history):
-        if self.rss_ready():
-            self.last_updated = time.time()
-        else:
-            return None
-        updates = None
-        feeds = []
-        items = []
-        sorted_feeditems = None
-        for url in rss_feed_list:
-            feeds.append(feedparser.parse(url))
-        for feed in feeds:
-            feeditems = []
-            for item in feed["items"]:
-                feeditems.append(item)
-            try:
-                sorted_feeditems = sorted(feeditems, key=lambda entry: entry["date_parsed"])#.reverse()[:10]
-                sorted_feeditems.reverse()
-                sorted_feeditems = sorted_feeditems[:10]
-            except:
-                try:
-                    sorted_feeditems = sorted(feeditems, key=lambda entry: entry["published_parsed"])#.reverse()[:10]
-                    sorted_feeditems.reverse()
-                    sorted_feeditems = sorted_feeditems[:10]
-                except Exception as e:
-                    print("RSS Feed Error!")
-                    print(e)
-                    pass
-                pass
-            if sorted_feeditems is not None:
-                for item in sorted_feeditems:
-                    items.append(item)
-#         sorted_items = items.sort(key=lambda r: stupidparse(r["date_parsed"]))
-#         for item in items:
-#             try:
-#                 item["date_parsed"] = item["published_parsed"]
-#         sorted_items = sorted(items, key=lambda entry: entry["date_parsed"]).reverse()[:10]
-        for item in items:
-            flag = True
-            for message in rss_history:
-                if message.content == item["link"]:
-                    flag = False
-            if flag == True:
-                if updates is None:
-                    updates = []
-                updates.append(item["link"])
-#         print(updates)
-#         return None
-        return updates
-    
+        
     def create_character(self,message):
         self.log(message)
         parts = message.content.split(' ')
@@ -380,14 +329,69 @@ class Bot():
             pass
         elif command=="roll":
             pool = str(character.get_dice_pool(sheet_object))
-            return self.parse_dieroll(pool + "d10>=6f1 # rolling " + sheet_object + "for " + name), private
+            return self.parse_dieroll(pool + "d10>=6f1 # rolling " + sheet_object + "for " + name,character.owner), private
         else:
             return "Unrecognized command", private
         
         # Update sheet?
 
         return response, private
-                    
+    
+    def rss_ready(self):
+        if time.time()>self.last_updated+UpdateFrequency:
+            return True
+        return False
+    
+    def rss_update(self,rss_history):
+        if self.rss_ready():
+            self.last_updated = time.time()
+        else:
+            return None
+        updates = None
+        feeds = []
+        items = []
+        sorted_feeditems = None
+        for url in rss_feed_list:
+            feeds.append(feedparser.parse(url))
+        for feed in feeds:
+            feeditems = []
+            for item in feed["items"]:
+                feeditems.append(item)
+            try:
+                sorted_feeditems = sorted(feeditems, key=lambda entry: entry["date_parsed"])#.reverse()[:10]
+                sorted_feeditems.reverse()
+                sorted_feeditems = sorted_feeditems[:10]
+            except:
+                try:
+                    sorted_feeditems = sorted(feeditems, key=lambda entry: entry["published_parsed"])#.reverse()[:10]
+                    sorted_feeditems.reverse()
+                    sorted_feeditems = sorted_feeditems[:10]
+                except Exception as e:
+                    print("RSS Feed Error!")
+                    print(e)
+                    pass
+                pass
+            if sorted_feeditems is not None:
+                for item in sorted_feeditems:
+                    items.append(item)
+#         sorted_items = items.sort(key=lambda r: stupidparse(r["date_parsed"]))
+#         for item in items:
+#             try:
+#                 item["date_parsed"] = item["published_parsed"]
+#         sorted_items = sorted(items, key=lambda entry: entry["date_parsed"]).reverse()[:10]
+        for item in items:
+            flag = True
+            for message in rss_history:
+                if message.content == item["link"]:
+                    flag = False
+            if flag == True:
+                if updates is None:
+                    updates = []
+                updates.append(item["link"])
+#         print(updates)
+#         return None
+        return updates
+   
     def greet(self, member, chan):
         return """Welcome to Roll20 By Night!  
 We are a selective Classic World of Darkness network of games that focus on high roleplay, low rollplay.  

@@ -229,6 +229,7 @@ class Bot():
         charfile = open("../sheets/"+name+".txt","w")
         charfile.write(str(character))
         charfile.close()
+        self.sheets.append(character)
         return "Character created successfully.", name.capitalize()
     
     def character_update(self,character):

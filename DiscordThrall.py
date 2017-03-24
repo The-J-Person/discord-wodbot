@@ -28,13 +28,13 @@ rss_chan = ['271771293739778058', '270382116322148353']
 
 class Bot():
     def __init__(self):
-        self.characters = []
+        self.characters = {}
         self.last_updated = time.time()-UpdateFrequency
         self.sheets = []
         for filename in os.listdir('../sheets'):
             if filename.endswith(".txt"):
                 f = open('../sheets/'+filename)
-                self.sheets.append(WoDCharacter(f.read()))
+                self.sheets[filename.replace('.txt','')] = (WoDCharacter(f.read()))
                 f.close()
         
     def log(self,message):
@@ -226,10 +226,8 @@ class Bot():
         character = WoDCharacter(name,message.author.mention)
         if len(parts)>2:
             character.template(parts[2].capitalize())
-        charfile = open("../sheets/"+name+".txt","w")
-        charfile.write(str(character))
-        charfile.close()
-        self.sheets.append(character)
+        self.character_update(character)
+        self.sheets[name] = character
         return "Character created successfully.", name.capitalize()
     
     def character_update(self,character):
@@ -339,13 +337,15 @@ class Bot():
                 character.add_item_to_arsenal(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
             except:
                 return "Error completing this pick-up.", private
-            return name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            response = name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            self.character_update(character)
         elif command=="drop":
             try:
                 character.remove_item_from_arsenal(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
             except:
                 return "Couldn't drop this.", private
-            return name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            response = name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            self.character_update(character)
         elif command=="roll":
             rolltext = ""
             if len(sheet_object.split(' ')) > 1:
@@ -376,7 +376,23 @@ class Bot():
                 rolltext = str(character.get_dice_pool(sheet_object)) + "d10>=6f1 # rolling " + sheet_object + " for " + name
             return self.parse_dieroll(rolltext,character.owner), private
         elif command=="extend":
-            pass
+            try:
+                extended = sheet_object.split(' ')[0].capitalize()
+                extension = sheet_object.split(' ')[1].capitalize()
+                if sheet_object == "Description":
+                    character.add_description(extension)
+                elif sheet_object == "Statgroup":
+                    character.add_stat_category(extension)
+                elif sheet_object == "Resource":
+                    character.add_resource(extension)
+                elif sheet_object == "Arsenal":
+                    character.add_arsenal(extension)
+                else:
+                    character.add_stat(extended,extension)
+                self.character_update(character)
+            except Exception as e:
+                return "There was an error extending this character.", private
+            response = "Extended successfully."
         else:
             return "Unrecognized command", private
         

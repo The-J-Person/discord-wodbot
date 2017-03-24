@@ -33,7 +33,7 @@ class Bot():
         for filename in os.listdir('../sheets'):
             if filename.endswith(".txt"):
                 f = open('../sheets/'+filename)
-                self.sheets[filename.replace('.txt','')] = (WoDCharacter(f.read()))
+                self.sheets[filename.replace('.txt','')] = WoDCharacter(f.read())
                 f.close()
         
     def log(self,message):
@@ -248,9 +248,9 @@ class Bot():
         command = parts[0].lower()
         del parts[0]
         character = None
-        for sheet in self.sheets:
-            if sheet.name == name:
-                character = sheet
+        for sheet in self.sheets.keys():
+            if sheet == name:
+                character = self.sheets[sheet]
         sheet_object = None
         if len(parts)>=1:
             sheet_object = " ".join(parts)

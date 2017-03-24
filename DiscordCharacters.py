@@ -184,11 +184,11 @@ class WoDCharacter:
         self.arsenals[arsenal.capitalize()] = []
         return "Created successfully."
     def remove_arsenal(self, arsenal):
-        del self.arsenals[arsenal]
+        del self.arsenals[arsenal.capitalize()]
     def add_item_to_arsenal(self,arsenal,item):
-        self.arsenals[arsenal].append(item)
+        self.arsenals[arsenal.capitalize()].append(item)
     def remove_item_from_arsenal(self,arsenal,item):
-        self.arsenals[arsenal].remove(item)
+        self.arsenals[arsenal.capitalize()].remove(item)
     def reset_buffs(self):
         self.buffs = {}
     def add_buff(self,stat,amount):
@@ -217,7 +217,7 @@ class WoDCharacter:
         else:
             total +=self.resources[stat][1]
         total += self.buffs[stat]
-        return stat + " buffed by to " + str(total) + "for " + self.name + "!"
+        return stat + " buffed by to " + str(total) + " for  " + self.name + "!"
     def get_property(self,prop):
         prop = prop.capitalize()
         if prop == "All" or prop == "Sheet":
@@ -241,7 +241,7 @@ class WoDCharacter:
         for arsenal in self.arsenals.keys():
             if arsenal == prop:
                 return self.arsenals[prop]
-        return "Could not find " + prop + "for " + self.name
+        return "Could not find " + prop + " for " + self.name
     
     def set_property(self,prop,value):
         prop = prop.capitalize()
@@ -267,7 +267,7 @@ class WoDCharacter:
         for arsenal in self.arsenals.keys():
             if arsenal == prop:
                 return "Error: Arsenals can not be 'set'."
-        return "Could not find " + prop + "for " + self.name
+        return "Could not find " + prop + " for " + self.name
     
     def template(self,ttype):
         ttype = ttype.capitalize()

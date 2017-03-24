@@ -324,17 +324,28 @@ class Bot():
                 character.reset_resource(sheet_object)
             except:
                 return "Error resetting this resource."
-            response = character.get_property(sheet_object.split(' ')[0])
-            private = True
+            if sheet_object.capitalize()!="Buffs":
+                response = character.get_property(sheet_object.split(' ')[0])
+                private = True
+            else:
+                response = "Buffs reset"
             self.character_update(character)
         elif command=="buff":
             response = character.add_buff(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
             private = True
             self.character_update(character)
         elif command=="pickup":
-            pass
+            try:
+                character.add_item_to_arsenal(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+            except:
+                return "Error completing this pick-up.", private
+            return name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
         elif command=="drop":
-            pass
+            try:
+                character.remove_item_from_arsenal(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+            except:
+                return "Couldn't drop this.", private
+            return name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
         elif command=="roll":
             rolltext = ""
             if len(sheet_object.split(' ')) > 1:

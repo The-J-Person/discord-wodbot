@@ -379,13 +379,13 @@ class Bot():
                 extended = sheet_object.split(' ')[0].capitalize()
                 extension = sheet_object.split(' ')[1].capitalize()
                 if sheet_object == "Description":
-                    character.add_description(extension)
+                    character.set_description(extension)
                 elif sheet_object == "Statgroup":
                     character.add_stat_category(extension)
                 elif sheet_object == "Resource":
-                    character.add_resource(extension)
+                    character.create_resource(extension)
                 elif sheet_object == "Arsenal":
-                    character.add_arsenal(extension)
+                    character.create_arsenal(extension)
                 else:
                     character.add_stat(extended,extension)
                 self.character_update(character)

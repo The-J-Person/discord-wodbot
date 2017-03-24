@@ -28,9 +28,8 @@ rss_chan = ['271771293739778058', '270382116322148353']
 
 class Bot():
     def __init__(self):
-        self.characters = {}
         self.last_updated = time.time()-UpdateFrequency
-        self.sheets = []
+        self.sheets = {}
         for filename in os.listdir('../sheets'):
             if filename.endswith(".txt"):
                 f = open('../sheets/'+filename)
@@ -391,6 +390,7 @@ class Bot():
                     character.add_stat(extended,extension)
                 self.character_update(character)
             except Exception as e:
+                print(str(e))
                 return "There was an error extending this character.", private
             response = "Extended successfully."
         else:

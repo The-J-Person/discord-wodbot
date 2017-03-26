@@ -151,7 +151,7 @@ async def on_message(message):
     elif message.content.startswith('!char ') or message.content.startswith('!c '):
         response,private = Bot.character_handling(message)
         splits = DiscordThrall.splitstr(response, 2000)
-        if splits > 1:
+        if len(splits) > 1:
             private = True
         if private:
             chan = message.author

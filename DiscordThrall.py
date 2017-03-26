@@ -566,7 +566,7 @@ The roles' corresponding numbers are, at present, as follows:
                 response += str(i) + '. ' + hierarchy[i].name + '\n'
             return response
         elif what == "characters":
-            response = """**Character Sheet Functionality:**
+            return """**Character Sheet Functionality:**
             
 __Creating a new sheet:__
 To create a new sheet, type `!create [name] ([template])`. 
@@ -588,7 +588,7 @@ Your sheet is divided into 5 sections by `---` (three dashes).
 You can learn more about using these parts of your sheet via `!help descriptions`, `!help stats`, `!help resources` and `!help collections`, respectively.
 """
         elif what == "descriptions":
-            response = """**Character Sheet Descriptions:**
+            return """**Character Sheet Descriptions:**
 
 Descriptions are the free-text fields of your sheet. 
 You can write anything in them, although keep discord's message length limit in mind!
@@ -599,7 +599,7 @@ Example: `!c bob set Appearance Bob wears a horse mask and tutu` will set Bob's 
 To then show off your writing, use `!c(har) [character name] get [description name].` - you can substitute `get` for `show`.
 Example: `!char bob get Appearance` will show Bob's Appearance in the current channel."""
         elif what == "stats":
-            response = """**Character Sheet Stats:**
+            return """**Character Sheet Stats:**
 
 Stats are the crunch of your character - the numbers representing the persona.
 They are divided into categories - every stat must belong to a category!
@@ -623,12 +623,11 @@ Note the space!
 Stats can be buffed with `!c(har) [name] buff [stat name] X`, X being the buff amount.
 This will increase the stat by the given amount until you reset buffs (using `!c(har) [name] reset buffs`) or the bot restarts."""
         elif what == "resources":
-            response = """**Character Sheet Resources:**
+            return """**Character Sheet Resources:**
 """
         elif what == "collections" or what == "arsenals":
-            response = """**Character Sheet Collections(Arsenals):**
+            return """**Character Sheet Collections(Arsenals):**
 """
-            return response
         else:
             return "Unknown help request: Try '!help commands' for a list."
         

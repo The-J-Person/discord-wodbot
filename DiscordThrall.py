@@ -408,7 +408,7 @@ class Bot():
                 extended = sheet_object.split(' ')[0].capitalize()
                 extension = sheet_object.split(' ')[1].capitalize()
                 if extended == "Description":
-                    character.set_description(extension)
+                    character.set_description(extension,"")
                 elif extended == "Statgroup":
                     character.add_stat_category(extension)
                 elif extended == "Resource":

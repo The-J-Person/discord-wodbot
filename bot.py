@@ -149,7 +149,7 @@ async def on_message(message):
         
     # Character sheet functionality
     elif message.content.startswith('!char ') or message.content.startswith('!c '):
-        response,private = Bot.character_handling(message)
+        response,private = Bot.character_handling(message,client.get_server(DiscordThrall.R20BNServer))
         splits = DiscordThrall.splitstr(response, 2000)
         if len(splits) > 1:
             private = True
@@ -163,7 +163,7 @@ async def on_message(message):
             
     # Same as above, but *always* send success response to both the requester and someone else
     elif message.content.startswith('!st '):
-        response,st = Bot.character_handling_st(message)
+        response,st = Bot.character_handling_st(message,client.get_server(DiscordThrall.R20BNServer))
         if st is not None:
             try:
                 stuser = client.get_user_info(st)

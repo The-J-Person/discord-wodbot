@@ -243,8 +243,8 @@ class Bot():
         charlog.write("[RESPONSE] " + response)
         charlog.close()
         
-    def character_handling_st(self,message):
-        response, privacy = self.character_handling(message)
+    def character_handling_st(self,message, R20server=None):
+        response, privacy = self.character_handling(message,R20server)
         try:
             name = message.content.split(' ')[1]
             character = self.sheets[name]
@@ -254,7 +254,7 @@ class Bot():
             pass
         return response, None
     
-    def character_handling(self,message):
+    def character_handling(self,message, R20server=None):
         self.log(message)
         parts = message.content.split(' ')
         private = False
@@ -273,7 +273,10 @@ class Bot():
                 character = self.sheets[sheet]
         if character == None:
             return "There is no character with that name.", private
-        if message.author.mention != character.owner and True != self.check_role_sufficiency(message.author, "Assistant Storyteller"):
+        if message.author.mention != character.owner:
+            return "This is silly.", private
+        silly = R20server.get_member(message.author.id)
+        if message.author.mention != character.owner and True != self.check_role_sufficiency(silly, "Assistant Storyteller"):
             return "You are neither the owner of this character, nor Staff.", private
         sheet_object = None
         if len(parts)>=1:
@@ -567,7 +570,15 @@ The roles' corresponding numbers are, at present, as follows:
         elif what == "characters":
             response = """**Character Sheet Functionality:**
             
-This section is a work in progress!"""
+__Creating a new sheet:__
+To create a new sheet, type `!create [name] ([template])`. 
+For example, `!create bob Vampire` will create a sheet named 'bob' that will be preset with fields suitable for V20.
+The `name` must be unique, and doesn't have to be your character's actual full name. It is also recommended to keep it short.
+Writing a `template` is optional: Any sheet can eventually be extended to being compatible with any system.
+Currently supported template keywords are: `Vampire,V20,VDA,V:DA,V20DA,Werewolf,W20,We20,Spirit,Mage,M20`
+
+__Using your sheet:__
+"""
             return response
         else:
             return "Unknown help request: Try '!help commands' for a list."

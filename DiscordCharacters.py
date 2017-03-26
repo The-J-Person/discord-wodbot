@@ -124,8 +124,11 @@ class WoDCharacter:
         key = ""
         cat = ""
         stat = stat.capitalize()
-        if stat.isdigit():
-            return int(stat)
+        try:
+            n = int(stat)
+            return n
+        except:
+            pass
         for category in self.stats.keys():
             for entry in self.stats[category].keys():
                 if entry == stat.capitalize():

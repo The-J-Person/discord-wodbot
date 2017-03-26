@@ -33,7 +33,8 @@ class WoDCharacter:
             self.initialize_from_string(text)
     def __str__(self,):
         return "---\n".join(self.to_text_section(0))
-    def to_text_section(self,limit=1998): #Discord Message Length Limit is 2000, leaving some padding space
+    def to_text_section(self,limit=2000): #Discord Message Length Limit is 2000. This is now addressed in another file.
+        # Thus, this function's features serve no purpose.
         section = []
         result = "**Name:** " + self.name + "\n**Owner:** " + self.owner +"\n**Storyteller**: " + str(self.st) + "\n"
         section.append(result)#result += "---\n"

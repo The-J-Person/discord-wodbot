@@ -150,10 +150,34 @@ async def on_message(message):
     # Character sheet functionality
     elif message.content.startswith('!char ') or message.content.startswith('!c '):
         response,private = Bot.character_handling(message)
+        splits = DiscordThrall.splitstr(response, 2000)
+        if splits > 1:
+            private = True
         if private:
             chan = message.author
+            for msg in splits: # Discord message length limit
+                await client.send_message(message.author, msg)
+            return
         else:
             chan = message.channel
+            
+    # Same as above, but *always* send success response to both the requester and someone else
+    elif message.content.startswith('!st '):
+        response,st = Bot.character_handling_st(message)
+        if st is not None:
+            try:
+                stuser = client.get_user_info(st)
+                for msg in DiscordThrall.splitstr(response, 2000): # Discord message length limit
+                    await client.send_message(message.author, msg)
+                    await client.send_message(stuser, msg)
+                return
+            except:
+                response = "The Storyteller specified was invalid (if you changed your sheet, it might still have been changed)"
+                pass
+        else:
+            for msg in DiscordThrall.splitstr(response, 2000): # Discord message length limit
+                await client.send_message(message.author, msg)
+            return
     
     # Manual greeting
     elif message.content.startswith('!greet'):

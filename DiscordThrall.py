@@ -5,6 +5,9 @@ from DiscordCharacters import WoDCharacter
 import os.path
 from discord import message
 
+def splitstr(text,length):
+    return [text[i:i+length] for i in range(0, len(text), length)]
+
 # list of feeds to pull down
 rss_feed_list = [ "https://www.reddit.com/r/WhiteWolfRPG/new.rss"
                  , "http://theonyxpath.com/feed/"
@@ -233,6 +236,23 @@ class Bot():
         charfile = open('../sheets/'+character.name+'.txt','w')
         charfile.write(str(character))
         charfile.close()
+        
+    def character_log(self,character,command,response):
+        charlog = open('../sheets/'+character.name+'.log','a')
+        charlog.write(command)
+        charlog.write("[RESPONSE] " + response)
+        charlog.close()
+        
+    def character_handling_st(self,message):
+        response, privacy = self.character_handling(message)
+        try:
+            name = message.content.split(' ')[1]
+            character = self.sheets[name]
+            st = character.st
+            return response, st
+        except:
+            pass
+        return response, None
     
     def character_handling(self,message):
         self.log(message)
@@ -251,6 +271,10 @@ class Bot():
         for sheet in self.sheets.keys():
             if sheet == name:
                 character = self.sheets[sheet]
+        if character == None:
+            return "There is no character with that name.", private
+        if message.author.mention != character.owner and True != self.check_role_sufficiency(message.author, "Assistant Storyteller"):
+            return "You are neither the owner of this character, nor Staff.", private
         sheet_object = None
         if len(parts)>=1:
             sheet_object = " ".join(parts)
@@ -270,22 +294,25 @@ class Bot():
                 return "Character owner transfer is not currently supported.", private
             elif thing == "St" or thing == "Storyteller":
                 try:
-                    character.set_st = message.mentions[0].mention
+                    character.set_st = message.mentions[0].id
                 except:
                     return "Please mention the ST you wish to set for this character."
                 response = "Storyteller set!"
             else:
                 response = character.set_property(thing,value)
             self.character_update(character)
+            self.character_log(character, str(message), response)
         elif command=="max":
             try:
                 character.set_resource_capacity(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
                 self.character_update(character)
                 response = "New maximum for " + sheet_object.split(' ')[0] + " set on " + character.name.capitalize() + "!"
+                self.character_log(character, str(message), response)
             except:
                 response = "Could not set capacity. Check spelling or report an error!"
         elif command=="get" or command=="show":
-            private = True
+            if sheet_object.lower() == "sheet":
+                private = True
             return character.get_property(sheet_object), private
         elif command=="use":
             if len(sheet_object.split(' '))>1:
@@ -299,8 +326,8 @@ class Bot():
                 except:
                     return "Error consuming this resource."
             response = character.get_property(sheet_object.split(' ')[0])
-            private = True
             self.character_update(character)
+            self.character_log(character, str(message), response)
                 
         elif command=="add":
             if len(sheet_object.split(' '))>1:
@@ -314,8 +341,8 @@ class Bot():
                 except:
                     return "Error replenishing this resource."
             response = character.get_property(sheet_object.split(' ')[0])
-            private = True
             self.character_update(character)
+            self.character_log(character, str(message), response)
         elif command=="reset":
             try:
                 character.reset_resource(sheet_object)
@@ -323,28 +350,29 @@ class Bot():
                 return "Error resetting this resource."
             if sheet_object.capitalize()!="Buffs":
                 response = character.get_property(sheet_object.split(' ')[0])
-                private = True
             else:
                 response = "Buffs reset"
             self.character_update(character)
         elif command=="buff":
             response = character.add_buff(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
-            private = True
             self.character_update(character)
+            self.character_log(character, str(message), response)
         elif command=="pickup":
             try:
-                character.add_item_to_arsenal(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                character.add_item_to_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
             except:
                 return "Error completing this pick-up.", private
-            response = name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            response = name + " picked up a new " + sheet_object.split(' ')[0].lower() + "!"
             self.character_update(character)
+            self.character_log(character, str(message), response)
         elif command=="drop":
             try:
-                character.remove_item_from_arsenal(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                character.remove_item_from_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
             except:
                 return "Couldn't drop this.", private
-            response = name + "picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            response = name + " dropped the " + sheet_object.split(' ')[0].lower() + ": " + sheet_object.partition(' ')[2] + "."
             self.character_update(character)
+            self.character_log(character, str(message), response)
         elif command=="roll":
             rolltext = ""
             if len(sheet_object.split(' ')) > 1:
@@ -378,25 +406,24 @@ class Bot():
             try:
                 extended = sheet_object.split(' ')[0].capitalize()
                 extension = sheet_object.split(' ')[1].capitalize()
-                if sheet_object == "Description":
+                if extended == "Description":
                     character.set_description(extension)
-                elif sheet_object == "Statgroup":
+                elif extended == "Statgroup":
                     character.add_stat_category(extension)
-                elif sheet_object == "Resource":
+                elif extended == "Resource":
                     character.create_resource(extension)
-                elif sheet_object == "Arsenal":
+                elif extended == "Arsenal":
                     character.create_arsenal(extension)
                 else:
                     character.add_stat(extended,extension)
                 self.character_update(character)
+                self.character_log(character, str(message), response)
             except Exception as e:
                 print(str(e))
                 return "There was an error extending this character.", private
             response = "Extended successfully."
         else:
             return "Unrecognized command", private
-        
-        # Update sheet?
 
         return response, private
     
@@ -544,4 +571,6 @@ This section is a work in progress!"""
             return response
         else:
             return "Unknown help request: Try '!help commands' for a list."
+        
+        
         

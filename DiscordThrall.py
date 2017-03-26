@@ -273,9 +273,9 @@ class Bot():
                 character = self.sheets[sheet]
         if character == None:
             return "There is no character with that name.", private
-        if message.author.mention != character.owner:
-            return "This is silly.", private
         silly = R20server.get_member(message.author.id)
+        if message.author.mention != character.owner:
+            return "This is silly " + message.author.mention, private
         if message.author.mention != character.owner and True != self.check_role_sufficiency(silly, "Assistant Storyteller"):
             return "You are neither the owner of this character, nor Staff.", private
         sheet_object = None
@@ -404,7 +404,7 @@ class Bot():
                 rolltext = pool + "d10" + extras + " # rolling " + to_roll[0] + " for " + name
             else:
                 rolltext = str(character.get_dice_pool(sheet_object)) + "d10>=6f1 # rolling " + sheet_object + " for " + name
-            return self.parse_dieroll(rolltext,character.owner), private
+            return self.parse_dieroll(rolltext,message.author.mention), private
         elif command=="extend":
             try:
                 extended = sheet_object.split(' ')[0].capitalize()

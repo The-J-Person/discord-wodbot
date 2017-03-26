@@ -164,7 +164,7 @@ class WoDCharacter:
                 stuff = self.get_numeric_stat(stat)
                 total += stuff
             except Exception as e:
-                print(stuff + str(e) + " stuff:" + stat)
+                print(stuff + str(e))
                 return "Some error occurred!"
         return total
     def create_resource(self,rsrc):

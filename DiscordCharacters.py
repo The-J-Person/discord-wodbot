@@ -36,7 +36,7 @@ class WoDCharacter:
     def to_text_section(self,limit=2000): #Discord Message Length Limit is 2000. This is now addressed in another file.
         # Thus, this function's features serve no purpose.
         section = []
-        result = "__Identification__\n**Name:** " + self.name + "\n**Owner:** " + self.owner +"\n**Storyteller**: " + str(self.st) + ">\n"
+        result = "__Identification__\n**Name:** " + self.name + "\n**Owner:** " + self.owner +"\n**Storyteller**: " + str(self.st) + "\n"
         section.append(result)#result += "---\n"
         result = "__Descriptions__\n"
         for description in sorted(self.descriptions.keys(), key=lambda k: sortkey(k)):

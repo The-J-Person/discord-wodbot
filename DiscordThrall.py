@@ -281,8 +281,8 @@ class Bot():
             sheet_object = " ".join(parts)
         response = "There was some error."
         if command=="set":
-            thing = sheet_object.split(' ')[0].capitalize()
-            value = sheet_object.split(' ')[1]
+            thing = sheet_object.partition(' ')[0].capitalize()
+            value = sheet_object.partition(' ')[2]
             if thing == "Name":
                 return "Character renaming is not currently supported.", private
 #                 if os.path.isfile("../sheets/"+value+".txt"):
@@ -613,7 +613,7 @@ You can also roll them: `!c(har) [name] roll [stat]+[another stat]+[a 3rd stat..
 By default this will be at difficulty 6, natural 1s subtracting successes. You can specify otherwise by appending `diff X` (X being another difficulty) to the end of the roll request.
 You may also add a combination of letters after that - 
 `w` (willpower) will assume one automatic success, 
-`p` (passive) will make the roll not subtract successes, and
+`p` (passive) will make 1s not count as botches, and
 `s` (speciality) will make every roll of 10 count as 2 successes.
 Example: `!char bob roll strength+brawl diff 7 ws` will roll Bob's Strength+Brawl dicepool, difficulty 7, giving 1 automatic success, and counting 10s twice.
 Note the space before the last letter jumble - it needs to be there!

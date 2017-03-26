@@ -123,6 +123,7 @@ class WoDCharacter:
     def get_numeric_stat(self,stat):
         key = ""
         cat = ""
+        stat = stat.capitalize()
         for category in self.stats.keys():
             for entry in self.stats[category].keys():
                 if entry == stat.capitalize():
@@ -328,6 +329,7 @@ class WoDCharacter:
             self.stats = {}
             self.resources["Rage"] = [1,1]
             self.resources["Gnosis"] = [1,1]
+            self.resources["Essence"] = [1,1]
         elif ttype == "Human":
             pass
              

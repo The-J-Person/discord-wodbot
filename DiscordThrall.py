@@ -281,7 +281,7 @@ class Bot():
             sheet_object = " ".join(parts)
         response = "There was some error."
         if command=="set":
-            thing = sheet_object.split(' ')[0].capitalize()
+            thing = sheet_object.partition(' ')[0].capitalize()
             value = sheet_object.partition(' ')[2]
             if thing == "Name":
                 return "Character renaming is not currently supported.", private

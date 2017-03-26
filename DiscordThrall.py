@@ -295,9 +295,9 @@ class Bot():
                 return "Character owner transfer is not currently supported.", private
             elif thing == "St" or thing == "Storyteller":
                 try:
-                    character.set_st = message.mentions[0].id
+                    character.st = message.mentions[0].id
                 except:
-                    return "Please mention the ST you wish to set for this character."
+                    return "Please mention the ST you wish to set for this character.", private
                 response = "Storyteller set!"
             else:
                 response = character.set_property(thing,value)

@@ -220,7 +220,8 @@ class WoDCharacter:
         else:
             total +=self.resources[stat][1]
         total += self.buffs[stat]
-        return stat + " buffed by to " + str(total) + " for  " + self.name + "!"
+        return stat + " buffed by to " + str(total) + " for " + self.name + "!"
+    
     def get_property(self,prop):
         prop = prop.capitalize()
         if prop == "All" or prop == "Sheet":
@@ -315,9 +316,9 @@ class WoDCharacter:
             self.resources["Wisdom"] = [1,1]
         elif ttype == "Mage" or ttype == "M20":
             self.stats["Spheres"] = {"Arete": 0,"Correspondence": 0,"Entropy": 0,"Forces": 0,"Life": 0,"Matter": 0,"Mind": 0,"Prime": 0,"Spirit": 0,"Time": 0}
-            self.stats["Talent"] = {"Alertness": 0, "Athletics": 0, "Awareness": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Intimidation": 0, "Leadership": 0, "Streetwise": 0, "Subterfuge": 0}
-            self.stats["Skill"] = {"Animal-Ken": 0, "Crafts": 0, "Drive": 0, "Etiquette": 0, "Firearms": 0, "Larceny": 0, "Melee": 0, "Performance": 0, "Stealth": 0, "Survival": 0}
-            self.stats["Knowledge"] = {"Academics": 0, "Computer": 0, "Finance": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Politics": 0, "Science": 0, "Technology": 0}
+            self.stats["Talent"] = {"Alertness": 0, "Art": 0, "Athletics": 0, "Awareness": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Intimidation": 0, "Leadership": 0, "Streetwise": 0, "Subterfuge": 0}
+            self.stats["Skill"] = {"Crafts": 0, "Drive": 0, "Etiquette": 0, "Firearms": 0, "Martial Arts": 0, "Meditation": 0, "Melee": 0, "Research": 0, "Stealth": 0, "Survival": 0, "Technology": 0}
+            self.stats["Knowledge"] = {"Academics": 0, "Computer": 0, "Cosmology": 0, "Enigmas": 0, "Esoterica": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Politics": 0, "Science": 0}
             self.resources["Quintessence"] = [10,10]
             self.resources["Paradox"] = [0,10]
         elif ttype == "Changeling" or ttype == "C20":

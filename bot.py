@@ -165,7 +165,7 @@ async def on_message(message):
     elif message.content.startswith('!st '):
         chan = None
         response,st = Bot.character_handling_st(message,client.get_server(DiscordThrall.R20BNServer))
-        if st is not None:
+        if st is not None and st != message.author.id:
             try:
                 stuser = client.get_user_info(st)
                 for msg in DiscordThrall.splitstr(response, 2000): # Discord message length limit

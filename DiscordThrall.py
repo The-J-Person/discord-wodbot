@@ -249,6 +249,7 @@ class Bot():
             name = message.content.split(' ')[1]
             character = self.sheets[name]
             st = character.st
+            print(name+" "+st)
             return response, st
         except:
             pass

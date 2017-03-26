@@ -225,7 +225,7 @@ class Bot():
         name = parts[1].lower()
         if os.path.isfile("../sheets/"+name+".txt"):
             return "This name is already taken. Pick another!", None
-        character = WoDCharacter(name,message.author.mention)
+        character = WoDCharacter(name,message.author.id)
         if len(parts)>2:
             character.template(parts[2].capitalize())
         self.character_update(character)
@@ -274,9 +274,7 @@ class Bot():
         if character == None:
             return "There is no character with that name.", private
         silly = R20server.get_member(message.author.id)
-        if message.author.mention != character.owner:
-            return "This is silly " + message.author.mention, private
-        if message.author.mention != character.owner and True != self.check_role_sufficiency(silly, "Assistant Storyteller"):
+        if message.author.id != character.owner and True != self.check_role_sufficiency(silly, "Assistant Storyteller"):
             return "You are neither the owner of this character, nor Staff.", private
         sheet_object = None
         if len(parts)>=1:

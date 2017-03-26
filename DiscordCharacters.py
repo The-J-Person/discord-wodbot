@@ -36,9 +36,9 @@ class WoDCharacter:
     def to_text_section(self,limit=2000): #Discord Message Length Limit is 2000. This is now addressed in another file.
         # Thus, this function's features serve no purpose.
         section = []
-        result = "__Identification__\n**Name:** " + self.name + "\n**Owner:** <@" + self.owner +">\n**Storyteller**: <@" + str(self.st) + ">\n"
+        result = "**Name:** " + self.name + "\n**Owner:** <@" + self.owner +">\n**Storyteller**: <@" + str(self.st) + ">\n"
         section.append(result)#result += "---\n"
-        result = "__Descriptions__\n"
+        result = ""
         for description in sorted(self.descriptions.keys(), key=lambda k: sortkey(k)):
             ###
             # WARNING! Not checking if a single description is over-limit!
@@ -49,7 +49,7 @@ class WoDCharacter:
                 result = ""
             result += "**" + description + ":** " + self.descriptions[description] + "\n"
         section.append(result)#result += "---\n"
-        result = "__Stats__\n"
+        result = ""
         for category in sorted(self.stats.keys(), key=lambda k: sortkey(k)):
             ###
             # WARNING! The stats section is not being checked for being over-limit!
@@ -60,7 +60,7 @@ class WoDCharacter:
                 result += "**" + stat + ":** " + str(self.stats[category][stat]) + "\t"
             result += "\n"
         section.append(result)#result += "---\n"
-        result = "__Resources__\n"
+        result = ""
         for resource in sorted(self.resources.keys(), key=lambda k: sortkey(k)):
             ###
             # WARNING! The resources section is not being checked for being over-limit!
@@ -68,7 +68,7 @@ class WoDCharacter:
             ###
             result += "**" + resource + ":** " + str(self.resources[resource][0]) + "/" + str(self.resources[resource][1]) + "\n"
         section.append(result)#result += "---\n"
-        result = "__Collections__\n"
+        result = ""
         for bag in self.arsenals.keys():
             ###
             # WARNING! The arsenals section is not being checked for being over-limit!

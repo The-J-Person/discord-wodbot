@@ -124,6 +124,8 @@ class WoDCharacter:
         key = ""
         cat = ""
         stat = stat.capitalize()
+        if stat.isdigit():
+            return int(stat)
         for category in self.stats.keys():
             for entry in self.stats[category].keys():
                 if entry == stat.capitalize():
@@ -218,9 +220,9 @@ class WoDCharacter:
         if cat != "resource":
             total += self.stats[cat][stat]
         else:
-            total +=self.resources[stat][1]
+            total += self.resources[stat][1]
         total += self.buffs[stat]
-        return stat + " buffed by to " + str(total) + " for " + self.name + "!"
+        return stat + " buffed to " + str(total) + " for " + self.name + "!"
     
     def get_property(self,prop):
         prop = prop.capitalize()
@@ -308,7 +310,10 @@ class WoDCharacter:
             del self.descriptions["Demeanor"]
             self.descriptions["Tribe"] = "Tribalistic"
             self.descriptions["Auspice"] = "Auspicious"
-            self.descriptions["Breed"] = "Meme-tis"
+            self.descriptions["Breed"] = "One of three, I bet"
+            self.stats["Talent"] = {"Alertness": 0, "Athletics": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Leadership": 0, "Intimidation": 0, "Primal-Urge": 0, "Streetwise": 0, "Subterfuge": 0}
+            self.stats["Skill"] = {"Animal-Ken": 0, "Crafts": 0, "Drive": 0, "Etiquette": 0, "Firearms": 0, "Larceny": 0, "Melee": 0, "Performance": 0, "Stealth": 0, "Survival": 0}
+            self.stats["Knowledge"] = {"Academics": 0, "Computer": 0, "Enigmas": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Rituals": 0, "Science": 0, "Technology": 0}
             self.resources["Rage"] = [1,1]
             self.resources["Gnosis"] = [1,1]
             self.resources["Glory"] = [1,1]

@@ -168,7 +168,6 @@ async def on_message(message):
         if st is not None and st != message.author.id:
             try:
                 stuser = client.get_server(DiscordThrall.R20BNServer).get_member(st)
-                print("Acquired " + stuser.id)
                 for msg in DiscordThrall.splitstr(response, 2000): # Discord message length limit
                     await client.send_message(message.author, msg)
                     await client.send_message(stuser, msg)

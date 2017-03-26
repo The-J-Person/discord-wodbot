@@ -413,7 +413,7 @@ class Bot():
                     character.add_stat_category(extension)
                 elif extended == "Resource":
                     character.create_resource(extension)
-                elif extended == "Arsenal":
+                elif extended == "Arsenal" or extended == "Collection":
                     character.create_arsenal(extension)
                 else:
                     character.add_stat(extended,extension)
@@ -571,11 +571,62 @@ The roles' corresponding numbers are, at present, as follows:
 __Creating a new sheet:__
 To create a new sheet, type `!create [name] ([template])`. 
 For example, `!create bob Vampire` will create a sheet named 'bob' that will be preset with fields suitable for V20.
-The `name` must be unique, and doesn't have to be your character's actual full name. It is also recommended to keep it short.
+The `name` must be unique, without spaces, and doesn't have to be your character's actual full name. 
+It is also recommended to keep it short.
 Writing a `template` is optional: Any sheet can eventually be extended to being compatible with any system.
 Currently supported template keywords are: `Vampire,V20,VDA,V:DA,V20DA,Werewolf,W20,We20,Spirit,Mage,M20`
 
-__Using your sheet:__
+You can then see your new sheet with `!c [name] get sheet` with the name you've used to create it.
+
+Your sheet is divided into 5 sections by `---` (three dashes).
+1. `Identification` (The only section that cannot be extended)
+2. `Descriptions` (Free text fields will go here.)
+3. `Stats` (Numeric values representing your character, subdivided into sub categories)
+4. `Resources` (Fluctuating numeric values, such as blood pools, willpower, gnosis, rage, etc...)
+5. `Collections` (Groupings of 'free text' items, such as Items, Derangements, Rituals, etc. Also known as `Arsenals`.)
+
+You can learn more about using these parts of your sheet via `!help descriptions`, `!help stats`, `!help resources` and `!help collections`, respectively.
+"""
+        elif what == "descriptions":
+            response = """**Character Sheet Descriptions:**
+
+Descriptions are the free-text fields of your sheet. 
+You can write anything in them, although keep discord's message length limit in mind!
+To create a new description, use `!c(har) [character name] extend Description [description name]`.
+Example: `!c bob extend Description Appearance` will create a new Description labeled 'Appearance' on Bob's sheet.
+You can then write something in there using `!c(har) [character name] set [description name] [description content]`.
+Example: `!c bob set Appearance Bob wears a horse mask and tutu` will set Bob's 'Appearance' on the sheet to 'Bob wears a horse mask and tutu'
+To then show off your writing, use `!c(har) [character name] get [description name].` - you can substitute `get` for `show`.
+Example: `!char bob get Appearance` will show Bob's Appearance in the current channel."""
+        elif what == "stats":
+            response = """**Character Sheet Stats:**
+
+Stats are the crunch of your character - the numbers representing the persona.
+They are divided into categories - every stat must belong to a category!
+To create a new stat, use `!c(har) [name] extend [category name] [new stat name]`, and it will appear in that category with a value of 0.
+You can then set it by using `!c(har) [name] set [stat name]`. This can also be used to change existing stats.
+To create a new stat category, use `!c(har) [name] extend statgroup [new category name]`. 
+Make sure not to leave a statgroup empty! Create a new stat for your new group.
+You can always see your sheet with `!c(har) [name] get sheet`, but you can also get/show an individual stat:
+`!c(har) [name] get [stat name]` will do that. You can substitute `get` for `show`.
+You can also roll them: `!c(har) [name] roll [stat]+[another stat]+[a 3rd stat...]` will roll a dice pool equal to the sum of these supplied stats.
+By default this will be at difficulty 6, natural 1s subtracting successes. You can specify otherwise by appending `diff X` (X being another difficulty) to the end of the roll request.
+You may also add a combination of letters after that - 
+`w` (willpower) will assume one automatic success, 
+`p` (passive) will make the roll not subtract successes, and
+`s` (speciality) will make every roll of 10 count as 2 successes.
+Example: `!char bob roll strength+brawl diff 7 ws` will roll Bob's Strength+Brawl dicepool, difficulty 7, giving 1 automatic success, and counting 10s twice.
+Note the space before the last letter jumble - it needs to be there!
+If you prefer diceroller syntax, you can use it too:
+Example: Bob's strength=2 and brawl=4, `!c bob roll strength+brawl >=7f1+1` will work like `!r 6d10>=7f1+1` on the dice roller.
+Note the space!
+Stats can be buffed with `!c(har) [name] buff [stat name] X`, X being the buff amount.
+This will increase the stat by the given amount until you reset buffs (using `!c(har) [name] reset buffs`) or the bot restarts."""
+        elif what == "resources":
+            response = """**Character Sheet Resources:**
+"""
+        elif what == "collections" or what == "arsenals":
+            response = """**Character Sheet Collections(Arsenals):**
 """
             return response
         else:

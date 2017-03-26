@@ -196,6 +196,7 @@ class WoDCharacter:
     def add_buff(self,stat,amount):
         key = ""
         cat = ""
+        stat = stat.capitalize()
         for category in self.stats.keys():
             for entry in self.stats[category].keys():
                 if entry == stat.capitalize():

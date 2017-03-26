@@ -237,10 +237,10 @@ class Bot():
         charfile.write(str(character))
         charfile.close()
         
-    def character_log(self,character,command,response):
+    def character_log(self,character,message,response):
         charlog = open('../sheets/'+character.name+'.log','a')
-        charlog.write(command)
-        charlog.write("[RESPONSE] " + response)
+        charlog.write(str(message.timestamp) + ' ' + str(message.author) + ' [' + str(message.channel) + '] ' + message.content + '\n')
+        charlog.write("[RESPONSE] " + response + "\n")
         charlog.close()
         
     def character_handling_st(self,message, R20server=None):
@@ -302,13 +302,13 @@ class Bot():
             else:
                 response = character.set_property(thing,value)
             self.character_update(character)
-            self.character_log(character, str(message), response)
+            self.character_log(character, message, response)
         elif command=="max":
             try:
                 character.set_resource_capacity(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
                 self.character_update(character)
                 response = "New maximum for " + sheet_object.split(' ')[0] + " set on " + character.name.capitalize() + "!"
-                self.character_log(character, str(message), response)
+                self.character_log(character, message, response)
             except:
                 response = "Could not set capacity. Check spelling or report an error!"
         elif command=="get" or command=="show":
@@ -328,7 +328,7 @@ class Bot():
                     return "Error consuming this resource."
             response = character.get_property(sheet_object.split(' ')[0])
             self.character_update(character)
-            self.character_log(character, str(message), response)
+            self.character_log(character, message, response)
                 
         elif command=="add":
             if len(sheet_object.split(' '))>1:
@@ -343,7 +343,7 @@ class Bot():
                     return "Error replenishing this resource."
             response = character.get_property(sheet_object.split(' ')[0])
             self.character_update(character)
-            self.character_log(character, str(message), response)
+            self.character_log(character, message, response)
         elif command=="reset":
             try:
                 character.reset_resource(sheet_object)
@@ -357,7 +357,7 @@ class Bot():
         elif command=="buff":
             response = character.add_buff(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
             self.character_update(character)
-            self.character_log(character, str(message), response)
+            self.character_log(character, message, response)
         elif command=="pickup":
             try:
                 character.add_item_to_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
@@ -365,7 +365,7 @@ class Bot():
                 return "Error completing this pick-up.", private
             response = name + " picked up a new " + sheet_object.split(' ')[0].lower() + "!"
             self.character_update(character)
-            self.character_log(character, str(message), response)
+            self.character_log(character, message, response)
         elif command=="drop":
             try:
                 character.remove_item_from_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
@@ -373,7 +373,7 @@ class Bot():
                 return "Couldn't drop this.", private
             response = name + " dropped the " + sheet_object.split(' ')[0].lower() + ": " + sheet_object.partition(' ')[2] + "."
             self.character_update(character)
-            self.character_log(character, str(message), response)
+            self.character_log(character, message, response)
         elif command=="roll":
             rolltext = ""
             if len(sheet_object.split(' ')) > 1:
@@ -418,7 +418,7 @@ class Bot():
                 else:
                     character.add_stat(extended,extension)
                 self.character_update(character)
-                self.character_log(character, str(message), response)
+                self.character_log(character, message, response)
             except Exception as e:
                 print(str(e))
                 return "There was an error extending this character.", private

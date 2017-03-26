@@ -163,6 +163,7 @@ async def on_message(message):
             
     # Same as above, but *always* send success response to both the requester and someone else
     elif message.content.startswith('!st '):
+        chan = None
         response,st = Bot.character_handling_st(message,client.get_server(DiscordThrall.R20BNServer))
         if st is not None:
             try:
@@ -229,7 +230,8 @@ async def on_message(message):
             chan = client.get_channel(destination)
     except Exception as e:
         print("The message failing was:" + message.content + "\nThe error is: " + str(e))
-    await client.send_message(chan, response)
+    if chan is not None:
+        await client.send_message(chan, response)
     
     
 @client.event

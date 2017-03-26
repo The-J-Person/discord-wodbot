@@ -1,0 +1,81 @@
+﻿-General:
+
+        -Headers
+
+        -Health Bar
+
+                -Damage types Bashing, Lethal, Agg
+
+                -This will modify rolls
+
+                -Add ‘i’ mod to rolls 
+
+        
+
+-Remove field (‘delete’ command)
+
+-Change field
+
+-Extend field to take multiple words (spaces) (Labels with Spaces)
+
+-Sort stats to output in the order of the official character sheet (Replace the dictionary with a list) ---
+
+-Change syntax: Descriptions, Collections etc.  when using commands. Add aliases Basically be consistent about what you reference in the help files and what you take as a command
+
+
+
+
+
+-Identification:
+
+        Need under “Name:” “Character Name” field
+
+        -Mentioning ST/Player (When Displaying Sheet)
+
+
+
+
+
+-Resources:
+
+-Blood per turn added to Resources (“Blood-per-Turn” 1/1)
+
+
+
+
+
+-”@Status” Command
+
+        -Resources (including Blood per turn) 
+
+        -Health (After Health bars are implemented)
+
+        -Buffs (and base stats) Display any buff, the stat it is buffing, and the difference
+
+        -Equipment After Equipment is implemented
+
+
+
+
+
+-Equipment Section
+
+        -Equipment Special Section! should be input with a number in (), which is its modifier to relevant dicepools
+
+        
+
+
+
+
+
+-Buffs
+
+-When referencing a buffed stat, display that it is buffed
+
+                -for rolling, showing sheets, etc.
+
+-Buff reset Display the buffed stats before the reset, display the stat after the reset as well.
+
+-Collections
+
+-Set collections to be “add” and “remove” rather than pickup and drop (Alias “add” to “pickup” and add collection checking for the “add” command section, add “remove” command alias to “drop”)

@@ -314,6 +314,7 @@ class Bot():
         elif command=="get" or command=="show":
             if sheet_object.lower() == "sheet":
                 private = True
+                return character.display(), private
             return character.get_property(sheet_object), private
         elif command=="use":
             if len(sheet_object.split(' '))>1:

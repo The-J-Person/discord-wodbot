@@ -19,20 +19,76 @@ def sortkey(label):
         return 500
     return 10
 
+# So should I go for [Ж] Agg [X] Lethal [/] Bashing [ ] OK ???
+
 class WoDCharacter:
     def __init__(self, text=None, owner=None):
         self.name = text
         self.owner = owner
         self.st = None
+        self.health = [0,-100]
+        self.damage = [' ',' ']
         self.descriptions = {}
+        self.desclist = []
         self.stats = {}
+        self.statlist = []
         self.buffs = {}
         self.resources = {}
+        self.resourcelist = []
         self.arsenals = {}
+        self.arslist = []
         if text!=None and owner==None:
             self.initialize_from_string(text)
     def __str__(self,):
         return "---\n".join(self.to_text_section(0))
+    def display(self):
+        section = []
+        fullname = ""
+        try:
+            fullname = self.descriptions["Character Name"]
+        except:
+            pass
+        result = "__Identification__\n**Name:** " + self.name + "\n**Character Name:** " + fullname + "\n**Owner:** " + self.owner +"\n**Storyteller**: " + str(self.st) + "\n"
+        section.append(result)#result += "---\n"
+        result = "__Descriptions__\n"
+        for description in sorted(self.descriptions.keys(), key=lambda k: sortkey(k)):
+            section.append(result)#result += "---\n"
+            result = ""
+            result += "**" + description + ":** " + self.descriptions[description] + "\n"
+        section.append(result)#result += "---\n"
+        result = "__Stats__\n"
+        for category in sorted(self.stats.keys(), key=lambda k: sortkey(k)):
+            ###
+            # WARNING! The stats section is not being checked for being over-limit!
+            # Note to self: Add such a check later...
+            ###
+            result += "__**" + category + ":**__\n"
+            for stat in self.stats[category].keys():
+                result += "**" + stat + ":** " + str(self.stats[category][stat]) + "\t"
+            result += "\n"
+        section.append(result)#result += "---\n"
+        result = "__Resources__\n"
+        for resource in sorted(self.resources.keys(), key=lambda k: sortkey(k)):
+            ###
+            # WARNING! The resources section is not being checked for being over-limit!
+            # Albeit unlikely, a check should be added.
+            ###
+            result += "**" + resource + ":** " + str(self.resources[resource][0]) + "/" + str(self.resources[resource][1]) + "\n"
+        section.append(result)#result += "---\n"
+        result = "__Collections__\n"
+        for bag in self.arsenals.keys():
+            ###
+            # WARNING! The arsenals section is not being checked for being over-limit!
+            # Note to self: Add such a check later...
+            ###
+            result += "**" + bag + "**: "
+            for item in self.arsenals[bag]:
+                result += item + ", "
+            result = result.strip(', ')
+            result+="\n"
+        result = result.strip('\n')
+        section.append(result)
+        return section
     def to_text_section(self,limit=2000): #Discord Message Length Limit is 2000. This is now addressed in another file.
         # Thus, this function's features serve no purpose.
         section = []
@@ -304,9 +360,9 @@ class WoDCharacter:
         elif ttype == "Vda" or ttype == "V:da" or ttype == "V20da":
             self.descriptions["Clan"] = "Some"
             self.descriptions["Generation"] = "12th"
-            self.stats["Talent"] = {"Alertness": 0, "Athletics": 0, "Awareness": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Intimidation": 0, "Leadership": 0, "Streetwise": 0, "Subterfuge": 0}
-            self.stats["Skill"] = {"Animal-Ken": 0, "Crafts": 0, "Drive": 0, "Etiquette": 0, "Firearms": 0, "Larceny": 0, "Melee": 0, "Performance": 0, "Stealth": 0, "Survival": 0}
-            self.stats["Knowledge"] = {"Academics": 0, "Computer": 0, "Finance": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Politics": 0, "Science": 0, "Technology": 0}
+            self.stats["Talent"] = {"Alertness": 0, "Athletics": 0, "Awareness": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Intimidation": 0, "Leadership": 0, "Legerdemain": 0, "Subterfuge": 0}
+            self.stats["Skill"] = {"Animal-Ken": 0, "Archery": 0, "Commerce": 0, "Crafts": 0, "Etiquette": 0, "Melee": 0, "Performance": 0, "Ride": 0, "Stealth": 0, "Survival": 0}
+            self.stats["Knowledge"] = {"Academics": 0, "Enigmas": 0, "Hearth Wisdom": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Politics": 0, "Senechal": 0, "Theology": 0}
             self.resources["Blood"] = [11,11]
         elif ttype == "Werewolf" or ttype == "Fera" or ttype == "W20" or ttype == "We20":
             del self.descriptions["Nature"] #Fera have neither Nature nor Demeanor for some reason

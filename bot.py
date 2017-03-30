@@ -1,8 +1,31 @@
 #!/usr/bin/python3
 import discord
 import DiscordThrall
-#import logging
+import logging
+import socket
+import sys
+import os
 from keyring import *  # @UnusedWildImport
+
+lock_socket = None
+
+def is_lock_free():
+    global lock_socket
+    lock_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    try:
+        lock_id = "RidiculousBadger.Discord-Wodbot"
+        lock_socket.bind('\0' + lock_id)
+        logging.debug("Acquired lock %r" % (lock_id,))
+        print("Acquired lock %r" % (lock_id,))
+        return True
+    except socket.error:
+        # socket already locked, task must already be running
+        logging.info("Failed to acquire lock %r" % (lock_id,))
+        print("Failed to acquire lock %r" % (lock_id,))
+        return False
+
+if not is_lock_free():
+    sys.exit()
 
 client = discord.Client()
 Bot = DiscordThrall.Bot()

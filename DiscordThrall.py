@@ -215,7 +215,6 @@ class Bot():
             return "You cannot promote/demote to your top role or higher", None
         # Here we know the requester has the rights to promote the requestee
         return roles[target_role], target
-            
         
     def create_character(self,message):
         self.log(message)
@@ -254,6 +253,24 @@ class Bot():
             pass
         return response, None
     
+    def extract_label(self,sheetpiece):
+        piece = sheetpiece.partition(' ')[0]
+        labelmark = None
+        if "\"" in piece:
+            labelmark = "\""
+        elif "'" in piece:
+            labelmark = "'"
+        if labelmark is not None:
+            pieces = sheetpiece.split(labelmark)
+            label = pieces[1]
+            del pieces[0]
+            del pieces[0]
+            value = labelmark.join(pieces)
+        else:
+            label = piece
+            value = sheetpiece.partition(' ')[2]
+        return label, value
+    
     def character_handling(self,message, R20server=None):
         self.log(message)
         parts = message.content.split(' ')
@@ -280,9 +297,13 @@ class Bot():
         if len(parts)>=1:
             sheet_object = " ".join(parts)
         response = "There was some error."
+        
         if command=="set":
-            thing = sheet_object.split(' ')[0].capitalize()
-            value = sheet_object.partition(' ')[2]
+            try:
+                thing, value = self.extract_label(sheet_object)
+                thing = thing.capitalize()
+            except:
+                return "There is something wrong with your labels.", private
             if thing == "Name":
                 return "Character renaming is not currently supported.", private
 #                 if os.path.isfile("../sheets/"+value+".txt"):
@@ -303,28 +324,41 @@ class Bot():
                 response = character.set_property(thing,value)
             self.character_update(character)
             self.character_log(character, message, response)
+            
         elif command=="max":
             try:
-                character.set_resource_capacity(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                thing, value = self.extract_label(sheet_object)
+                thing = thing.capitalize()
+            except:
+                return "There is something wrong with your labels.", private
+            try:
+                character.set_resource_capacity(thing,value)
                 self.character_update(character)
                 response = "New maximum for " + sheet_object.split(' ')[0] + " set on " + character.name.capitalize() + "!"
                 self.character_log(character, message, response)
             except:
-                response = "Could not set capacity. Check spelling or report an error!"
+                return "Could not set capacity. Check spelling or report an error!", private
+            
         elif command=="get" or command=="show":
             if sheet_object.lower() == "sheet":
                 private = True
                 return character.display(), private
-            return character.get_property(sheet_object), private
+            return character.get_property(sheet_object.strip("'\"")), private
+        
         elif command=="use":
-            if len(sheet_object.split(' '))>1:
+            try:
+                thing, value = self.extract_label(sheet_object)
+                thing = thing.capitalize()
+            except:
+                return "There is something wrong with your labels.", private
+            if len(value)>=1:
                 try:
-                    character.consume_resource(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                    character.consume_resource(thing, value)
                 except:
                     return "Error consuming this resource."
             else:
                 try:
-                    response = character.consume_resource(sheet_object)
+                    character.consume_resource(thing)
                 except:
                     return "Error consuming this resource."
             response = character.get_property(sheet_object.split(' ')[0])
@@ -332,14 +366,19 @@ class Bot():
             self.character_log(character, message, response)
                 
         elif command=="add":
-            if len(sheet_object.split(' '))>1:
+            try:
+                thing, value = self.extract_label(sheet_object)
+                thing = thing.capitalize()
+            except:
+                return "There is something wrong with your labels.", private
+            if len(value)>=1:
                 try:
-                    character.restore_resource(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+                    character.restore_resource(thing,value)
                 except:
                     return "Error replenishing this resource."
             else:
                 try:
-                    response = character.restore_resource(sheet_object)
+                    response = character.restore_resource(thing)
                 except:
                     return "Error replenishing this resource."
             response = character.get_property(sheet_object.split(' ')[0])
@@ -347,6 +386,7 @@ class Bot():
             self.character_log(character, message, response)
         elif command=="reset":
             try:
+                # Have to read buffs here
                 character.reset_resource(sheet_object)
             except:
                 return "Error resetting this resource."
@@ -408,16 +448,19 @@ class Bot():
             try:
                 extended = sheet_object.split(' ')[0].capitalize()
                 extension = sheet_object.split(' ')[1].capitalize()
-                if extended == "Description":
-                    character.set_description(extension,"")
+                response = ""
+                if extended == "Description" or extended == "Descriptions":
+                    response = character.set_description(extension,"")
                 elif extended == "Statgroup":
-                    character.add_stat_category(extension)
-                elif extended == "Resource":
-                    character.create_resource(extension)
-                elif extended == "Arsenal" or extended == "Collection":
-                    character.create_arsenal(extension)
+                    response = character.add_stat_category(extension)
+                elif extended == "Resource" or extended == "Resources":
+                    response = character.create_resource(extension)
+                elif extended == "Arsenal" or extended == "Collection" or extended == "Arsenals" or extended == "Collections":
+                    response = character.create_arsenal(extension)
                 else:
-                    character.add_stat(extended,extension)
+                    response = character.add_stat(extended,extension)
+                    if response == "You don't have such a stat category.":
+                        return "Whatever you tried to extend does not exist"
                 self.character_update(character)
                 self.character_log(character, message, response)
             except Exception as e:

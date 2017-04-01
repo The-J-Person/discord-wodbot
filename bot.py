@@ -45,6 +45,11 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+    character_list_update = "__**Character List**__\n"
+    for sheet in sorted(Bot.sheets.values(), key = lambda s: str(s.st)):
+        character_list_update += sheet.name.capitalize() + ", owned by <@" + sheet.owner + "> (ST:<@" + str(sheet.st) + ">)\n"
+    charlist = await client.get_message(client.get_channel(DiscordThrall.Sheets_Channel), DiscordThrall.Character_List)
+    await client.edit_message(charlist, character_list_update)
 
 #When someone joins the server
 # @client.event

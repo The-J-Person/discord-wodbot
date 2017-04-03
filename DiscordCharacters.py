@@ -82,7 +82,7 @@ class WoDCharacter:
             if buff not in self.resourcelist:
                 result += self.get_property(buff) + "\n"
         for resource in self.resourcelist:
-            result += self.get_property(resource)
+            result += self.get_property(resource) + "\n"
         return result
     def display(self):
         section = []
@@ -127,7 +127,7 @@ class WoDCharacter:
         section.append(result)#result += "---\n"
         result = "__Collections__\n"
         for bag in self.arslist:
-            result += "**" + bag + "**: "
+            result += "**" + bag + ":** "
             for item in self.arsenals[bag]:
                 result += item + ", "
             result = result.strip(', ')
@@ -169,7 +169,7 @@ class WoDCharacter:
         section.append(result)#result += "---\n"
         result = ""
         for bag in self.arslist:
-            result += "**" + bag + "**: "
+            result += "**" + bag + ":** "
             for item in self.arsenals[bag]:
                 result += item + ", "
             result = result.strip(', ')
@@ -211,7 +211,7 @@ class WoDCharacter:
             self.damage.remove(t)
             response = "Healed this type of damage."
         self.damage.append(' ')
-        self.damage.sort(key=None, reverse=False)
+        self.damage.sort(key=damage_sort, reverse=False)
         return response
             
     def take_damage(self,t):
@@ -239,17 +239,17 @@ class WoDCharacter:
             elif 'X' in self.damage and 'Ж' in self.damage:
                 response += "\n *If mortal, this character is dead.*" #Ask badger whether this is the case
             else:
-                response += "\n *This character is dead. Convert to `Wraith the Oblivion` sheet?*"
+                response += "\n *This character is dead. Convert to* **Wraith the Oblivion** *sheet?*"
         return response
     def show_health(self):
-        result = "__" + self.name.capitalize() + ":__"
-        + "\n**Health Levels** \t`"
+        result = self.name.capitalize() + "'s **health**:\n```C\n"
         for level in self.health:
             result += '[' + str(level) + ']'
-        result += "`\n**Damage:** \t\t`"
+        result += "\n"
         for level in self.damage:
             result += '[' + str(level) + ']'
-        result += '`'
+        result += '\n```'
+        return result
     def remove_health_level(self,penalty):
         self.health.remove(int(penalty))
         del self.damage[len(self.health)]
@@ -445,8 +445,10 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
         return "Deleted successfully"
     def add_item_to_arsenal(self,arsenal,item):
         self.arsenals[arsenal.capitalize()].append(item)
+        return "Added."
     def remove_item_from_arsenal(self,arsenal,item):
         self.arsenals[arsenal.capitalize()].remove(item)
+        return "Removed."
     def reset_buffs(self):
         response = "Buffs before reset:\n"
         for buff in self.buffs.keys():
@@ -504,7 +506,11 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
                 return self.name + "'s " + prop + ": " + str(self.resources[prop][0]) + "/" + str(self.resources[prop][1])
         for arsenal in self.arsenals.keys():
             if arsenal == prop:
-                return self.arsenals[prop]
+                result = "**" + arsenal + ":** "
+                for item in self.arsenals[arsenal]:
+                    result += item + ", "
+                result = result.strip(', ')
+                return result
         return "Could not find " + prop + " for " + self.name
     
     def set_property(self,prop,value):
@@ -710,11 +716,12 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
             self.st = identifiers[2].split(' ')[1]
             h = identifiers[3].partition(' \t')[2]
             for level in h.split(','):
-                self.health.append(level)
+                self.health.append(int(level))
             d = identifiers[4].partition(' \t\t')[2]
             for level in d.split(','):
                 self.damage.append(level)
             self.health.sort(key=penalty_sort, reverse=False)
+            self.damage.sort(key=damage_sort, reverse=False)
             for line in descriptions:
                 linepts = line.partition(':** ')
                 self.add_description(linepts[0].strip(' *:_'))

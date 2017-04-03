@@ -269,6 +269,7 @@ class Bot():
         else:
             label = piece
             value = sheetpiece.partition(' ')[2]
+        print(str(label) + " " + str(value))
         return label, value
     
     def character_handling(self,message, R20server=None):
@@ -343,6 +344,8 @@ class Bot():
             if sheet_object.lower() == "sheet":
                 private = True
                 return character.display(), private
+            if sheet_object.lower() == "health":
+                return character.show_health(), private
             if sheet_object.lower() == "status":
                 return character.status(), private
             return character.get_property(sheet_object.strip("'\"")), private
@@ -405,25 +408,28 @@ class Bot():
             self.character_log(character, message, response)
             
         elif command=="buff":
-            response = character.add_buff(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
+            thing, value = self.extract_label(sheet_object)
+            response = character.add_buff(thing,value)
             self.character_update(character)
             self.character_log(character, message, response)
             
         elif command=="pickup":
+            thing, value = self.extract_label(sheet_object)
             try:
-                character.add_item_to_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
+                character.add_item_to_arsenal(thing,value)
             except:
                 return "Error completing this pick-up.", private
-            response = name + " picked up a new " + sheet_object.split(' ')[0].lower() + "!"
+            response = name + " picked up a new " + thing.lower() + "!"
             self.character_update(character)
             self.character_log(character, message, response)
             
         elif command=="drop" or command=="remove":
+            thing, value = self.extract_label(sheet_object)
             try:
-                character.remove_item_from_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
+                character.remove_item_from_arsenal(thing,value)
             except:
                 return "Couldn't drop this.", private
-            response = name + " dropped the " + sheet_object.split(' ')[0].lower() + ": " + sheet_object.partition(' ')[2] + "."
+            response = name.capitalize() + " dropped the " + thing.lower() + ": " + value.lower() + "."
             self.character_update(character)
             self.character_log(character, message, response)
             
@@ -446,23 +452,31 @@ class Bot():
             self.character_log(character, message, response)
             
         elif command=="rename":
-            return "Not implemented yet!",private
+            thing, value = self.extract_label(sheet_object)
+            response = character.rename_property(thing,value.strip("'\" "))
             self.character_update(character)
             self.character_log(character, message, response)
             
         elif command=="delete":
-            return "Not implemented yet!",private
+            response = character.delete_property(sheet_object.strip("'\" "))
             self.character_update(character)
             self.character_log(character, message, response)
         
         elif command=="roll":
             rolltext = ""
+            penalty = character.get_dice_penalty()
             if len(sheet_object.split(' ')) > 1:
                 extras = ""
                 comment = " "
                 to_roll = sheet_object.partition(' ')
                 pool = str(character.get_dice_pool(to_roll[0]))
+                if pool < penalty:
+                    pool = 0
+                    penalty = 0
                 if '>' in to_roll[2]:
+                    if penalty == -1:
+                        return "This character is incapacitated. Append 'i' to ignore health status.", private
+                    pool = str(int(pool)-int(penalty))
                     extras = to_roll[2]
                 else:
                     more = to_roll[2]
@@ -478,27 +492,37 @@ class Bot():
                     if 's' in more:
                         extras += "s"
                     if 'i' not in more:
-                        penalty = character.get_dice_penalty()
                         if penalty == -1:
                             return "This character is incapacitated. Append 'i' to ignore health status.", private
-                        pool -= penalty
+                        pool = str(int(pool)-int(penalty))
                     if 'h' not in more:
+                        comment += "\n"
                         for stat in to_roll[0].split('+'):
                             if stat.isdigit():
                                 continue
-                            comment += character.get_property(stat)
+                            comment += character.get_property(stat) +"\n"
+                        comment += "\n"
                 rolltext = pool + "d10" + extras + " # rolling " + to_roll[0] + " for " + name + comment
             else:
-                rolltext = str(character.get_dice_pool(sheet_object)) + "d10>=6f1 # rolling " + sheet_object + " for " + name
+                if penalty == -1:
+                    return "This character is incapacitated. Append 'i' to ignore health status.", private
+                pool = character.get_dice_pool(sheet_object)
+                if pool < penalty:
+                    pool = 0
+                    penalty = 0
+                rolltext = str(pool-penalty) + "d10>=6f1 # rolling " + sheet_object + " for " + name
             return self.parse_dieroll(rolltext,message.author.mention), private
         
         elif command=="extend":
             try:
-                extended = sheet_object.split(' ')[0].capitalize()
-                extension = sheet_object.split(' ')[1].capitalize()
+#                 extended = sheet_object.split(' ')[0].capitalize()
+#                 extension = sheet_object.split(' ')[1].capitalize()
+                extended, extension = self.extract_label(sheet_object)
+                extended = extended.capitalize()
+                extension = extension.capitalize().strip("'\" ")
                 response = ""
                 if extended == "Description" or extended == "Descriptions":
-                    response = character.set_description(extension,"")
+                    response = character.add_description(extension)
                 elif extended == "Statgroup":
                     response = character.add_stat_category(extension)
                 elif extended == "Resource" or extended == "Resources":
@@ -514,7 +538,7 @@ class Bot():
                 else:
                     response = character.add_stat(extended,extension)
                     if response == "You don't have such a stat category.":
-                        return "Whatever you tried to extend does not exist"
+                        return "Whatever you tried to extend does not exist", private
                 self.character_update(character)
                 self.character_log(character, message, response)
             except Exception as e:

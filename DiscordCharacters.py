@@ -660,47 +660,96 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
             self.set_resource_capacity("Blood", "10")
             self.set_resource("Blood", 10)
             self.create_resource("Blood-per-Turn")
-#         elif ttype == "Vda" or ttype == "V:da" or ttype == "V20da":
-#             self.descriptions["Clan"] = "Some"
-#             self.descriptions["Generation"] = "12th"
-#             self.stats["Talent"] = {"Alertness": 0, "Athletics": 0, "Awareness": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Intimidation": 0, "Leadership": 0, "Legerdemain": 0, "Subterfuge": 0}
-#             self.stats["Skill"] = {"Animal-Ken": 0, "Archery": 0, "Commerce": 0, "Crafts": 0, "Etiquette": 0, "Melee": 0, "Performance": 0, "Ride": 0, "Stealth": 0, "Survival": 0}
-#             self.stats["Knowledge"] = {"Academics": 0, "Enigmas": 0, "Hearth Wisdom": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Politics": 0, "Senechal": 0, "Theology": 0}
-#             self.resources["Blood"] = [11,11]
-#         elif ttype == "Werewolf" or ttype == "Fera" or ttype == "W20" or ttype == "We20":
-#             del self.descriptions["Nature"] #Fera have neither Nature nor Demeanor for some reason
-#             del self.descriptions["Demeanor"]
-#             self.descriptions["Tribe"] = "Tribalistic"
-#             self.descriptions["Auspice"] = "Auspicious"
-#             self.descriptions["Breed"] = "One of three, I bet"
-#             self.stats["Talent"] = {"Alertness": 0, "Athletics": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Leadership": 0, "Intimidation": 0, "Primal-Urge": 0, "Streetwise": 0, "Subterfuge": 0}
-#             self.stats["Skill"] = {"Animal-Ken": 0, "Crafts": 0, "Drive": 0, "Etiquette": 0, "Firearms": 0, "Larceny": 0, "Melee": 0, "Performance": 0, "Stealth": 0, "Survival": 0}
-#             self.stats["Knowledge"] = {"Academics": 0, "Computer": 0, "Enigmas": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Rituals": 0, "Science": 0, "Technology": 0}
-#             self.resources["Rage"] = [1,1]
-#             self.resources["Gnosis"] = [1,1]
-#             self.resources["Glory"] = [1,1]
-#             self.resources["Honor"] = [1,1]
-#             self.resources["Wisdom"] = [1,1]
-#         elif ttype == "Mage" or ttype == "M20":
-#             self.stats["Spheres"] = {"Arete": 0,"Correspondence": 0,"Entropy": 0,"Forces": 0,"Life": 0,"Matter": 0,"Mind": 0,"Prime": 0,"Spirit": 0,"Time": 0}
-#             self.stats["Talent"] = {"Alertness": 0, "Art": 0, "Athletics": 0, "Awareness": 0, "Brawl": 0, "Empathy": 0, "Expression": 0, "Intimidation": 0, "Leadership": 0, "Streetwise": 0, "Subterfuge": 0}
-#             self.stats["Skill"] = {"Crafts": 0, "Drive": 0, "Etiquette": 0, "Firearms": 0, "Martial Arts": 0, "Meditation": 0, "Melee": 0, "Research": 0, "Stealth": 0, "Survival": 0, "Technology": 0}
-#             self.stats["Knowledge"] = {"Academics": 0, "Computer": 0, "Cosmology": 0, "Enigmas": 0, "Esoterica": 0, "Investigation": 0, "Law": 0, "Medicine": 0, "Occult": 0, "Politics": 0, "Science": 0}
-#             self.resources["Quintessence"] = [10,10]
-#             self.resources["Paradox"] = [0,10]
-#         elif ttype == "Changeling" or ttype == "C20":
-#             return "Changeling templates are not yet supported."
-#         elif ttype == "Wraith" or ttype == "Wr20":
-#             return "Wraith templates are not yet supported."
-#         elif ttype == "Demon":
-#             return "Demon templates are not yet supported"
-#         elif ttype == "Spirit":
-#             self.stats = {}
-#             self.resources["Rage"] = [1,1]
-#             self.resources["Gnosis"] = [1,1]
-#             self.resources["Essence"] = [1,1]
-#         elif ttype == "Human":
-#             pass
+        elif ttype == "Vda" or ttype == "V:da" or ttype == "V20da":
+            self.add_health_level(0)
+            self.add_health_level(1)
+            self.add_health_level(1)
+            self.add_health_level(2)
+            self.add_health_level(2)
+            self.add_health_level(5)
+            self.health.sort(key=penalty_sort, reverse=False)
+            self.add_description("Clan")
+            self.add_description("Generation")
+            self.add_stat_category("Discipline")
+            self.add_stat("Discipline","Potence")
+            self.add_stat("Discipline","Celerity")
+            self.add_stat("Discipline","Fortitude")
+            self.add_stat_category("Virtue")
+            self.add_stat("Virtue","Conscience")
+            self.add_stat("Virtue","Self-control")
+            self.add_stat("Virtue","Courage")
+            self.add_stat_category("Road")
+            self.add_stat("Road","Humanity")
+            for talent in ["Alertness","Athletics","Awareness","Brawl","Empathy","Expression","Intimidation","Leadership","Legerdemain","Subterfuge"]:
+                self.add_stat("Talent", talent)
+            for skill in ["Animal-Ken","Archery","Commerce","Crafts","Etiquette","Melee","Performance","Ride","Stealth","Survival"]:
+                self.add_stat("Skill", skill)
+            for knowledge in ["Academics","Enigmas","Hearth Wisdom","Investigation","Law","Medicine","Occult","Politics","Senechal","Theology"]:
+                self.add_stat("Knowledge", knowledge)
+            self.create_resource("Blood")
+            self.set_resource_capacity("Blood", "11")
+            self.set_resource("Blood", 11)
+            self.create_resource("Blood-per-Turn")
+        elif ttype == "Werewolf" or ttype == "Fera" or ttype == "W20" or ttype == "We20":
+            self.add_health_level(0)
+            self.add_health_level(1)
+            self.add_health_level(1)
+            self.add_health_level(2)
+            self.add_health_level(2)
+            self.add_health_level(5)
+            self.remove_description("Nature") #Fera have neither Nature nor Demeanor for some reason
+            self.remove_description("Demeanor")
+            self.add_description("Tribe")
+            self.add_description("Auspice")
+            self.add_description("Breed")
+            for talent in ["Alertness","Athletics","Brawl","Empathy","Expression","Leadership","Intimidation","Primal-Urge","Streetwise","Subterfuge"]:
+                self.add_stat("Talent", talent)
+            for skill in ["Animal-Ken","Crafts","Drive","Etiquette","Firearms","Larceny","Melee","Performance","Stealth","Survival"]:
+                self.add_stat("Skill", skill)
+            for knowledge in ["Academics","Computer","Enigmas","Investigation","Law","Medicine","Occult","Rituals","Science","Technology"]:
+                self.add_stat("Knowledge", knowledge)
+            self.create_resource("Rage")
+            self.create_resource("Gnosis")
+            self.create_resource("Honor")
+            self.create_resource("Glory")
+            self.create_resource("Wisdom")
+            self.create_arsenal("Gift")
+        elif ttype == "Mage" or ttype == "M20":
+            self.add_health_level(0)
+            self.add_health_level(1)
+            self.add_health_level(1)
+            self.add_health_level(2)
+            self.add_health_level(2)
+            self.add_health_level(5)
+            self.add_stat_category("Sphere")
+            for sphere in ["Arete","Correspondence","Entropy","Forces","Life","Matter","Mind","Prime","Spirit","Time"]:
+                self.add_stat("Sphere", sphere)
+            for talent in ["Alertness","Art","Athletics","Awareness","Brawl","Empathy","Expression","Intimidation","Leadership","Streetwise","Subterfuge"]:
+                self.add_stat("Talent", talent)
+            for skill in ["Crafts","Drive","Etiquette","Firearms","Martial Arts","Meditation","Melee","Research","Stealth","Survival","Technology"]:
+                self.add_stat("Skill", skill)
+            for knowledge in ["Academics","Computer","Cosmology","Enigmas","Esoterica","Investigation","Law","Medicine","Occult","Politics","Science"]:
+                self.add_stat("Knowledge", knowledge)
+            self.create_resource("Quintessence")
+            self.set_resource_capacity("Quintessence", "10")
+            self.set_resource("Quintessence", 10)
+            self.create_resource("Paradox")
+            self.set_resource_capacity("Paradox", "10")
+            self.set_resource("Paradox", 0)
+        elif ttype == "Changeling" or ttype == "C20":
+            return "Changeling templates are not yet supported."
+        elif ttype == "Wraith" or ttype == "Wr20":
+            return "Wraith templates are not yet supported."
+        elif ttype == "Demon":
+            return "Demon templates are not yet supported"
+        elif ttype == "Spirit":
+            self.stats = {}
+            self.statlist = [[]]
+            self.create_resource("Rage")
+            self.create_resource("Gnosis")
+            self.create_resource("Essence")
+        elif ttype == "Human":
+            pass
              
         
     def initialize_from_string(self, text):

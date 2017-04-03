@@ -269,7 +269,6 @@ class Bot():
         else:
             label = piece
             value = sheetpiece.partition(' ')[2]
-        print(str(label) + " " + str(value))
         return label, value
     
     def character_handling(self,message, R20server=None):

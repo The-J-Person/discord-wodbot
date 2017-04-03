@@ -403,10 +403,11 @@ class WoDCharacter:
     def consume_resource(self,rsrc,amount=1):
         self.resources[rsrc.capitalize()][0] -= int(amount)
         return self.name.capitalize() + " spent " + str(amount) + " " + rsrc.capitalize() + """.
-Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.capitalize()][0]
+Now at """ + str(self.resources[rsrc.capitalize()][0]) + "/" + str(self.resources[rsrc.capitalize()][1])
     def restore_resource(self,rsrc,amount=1):
+        self.resources[rsrc.capitalize()][0] += int(amount)
         return self.name.capitalize() + " gained " + str(amount) + " " + rsrc.capitalize() + """.
-Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.capitalize()][0]
+Now at """ + str(self.resources[rsrc.capitalize()][0]) + "/" + str(self.resources[rsrc.capitalize()][1])
     def reset_resource(self,rsrc):
         response = ""
         if rsrc.capitalize() == "All":
@@ -414,10 +415,7 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
                 response += r + " reset from " + str(self.resources[r][0]) + " to " + str(self.resources[r][1]) + "\n"
             self.reset_all_resource()
         elif rsrc.capitalize() == "Buffs":
-            response += "Resetting buffs:\n"
-            for buff in self.buffs.keys():
-                response += self.get_property(buff) + "\n"
-            self.reset_buffs()
+            response = self.reset_buffs()
         else:
             response = "Resetting " + rsrc + " from " + str(self.resources[rsrc.capitalize()][0]) + " to " + str(self.resources[rsrc.capitalize()][1])
             self.resources[rsrc.capitalize()][0] = self.resources[rsrc.capitalize()][1]
@@ -452,7 +450,7 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
     def reset_buffs(self):
         response = "Buffs before reset:\n"
         for buff in self.buffs.keys():
-            response += self.buffs[buff] + " " + buff + "(base " + self.get_numeric_stat(buff) + ")\n"
+            response += self.get_property(buff)
         self.buffs = {}
         return response
     def add_buff(self,stat,amount):

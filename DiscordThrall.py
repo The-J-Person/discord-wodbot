@@ -357,15 +357,14 @@ class Bot():
                 return "There is something wrong with your labels.", private
             if len(value)>=1:
                 try:
-                    character.consume_resource(thing, value)
+                    response = character.consume_resource(thing, value)
                 except:
-                    return "Error consuming this resource."
+                    return "Error consuming this resource.", private
             else:
                 try:
-                    character.consume_resource(thing)
+                    response = character.consume_resource(thing)
                 except:
-                    return "Error consuming this resource."
-            response = character.get_property(sheet_object.split(' ')[0])
+                    return "Error consuming this resource.", private
             self.character_update(character)
             self.character_log(character, message, response)
                 
@@ -378,7 +377,7 @@ class Bot():
             if thing.capitalize() in character.resourcelist:
                 if len(value)>=1:
                     try:
-                        character.restore_resource(thing,value)
+                        response = character.restore_resource(thing,value)
                     except:
                         return "Error replenishing this resource.", private
                 else:
@@ -386,7 +385,6 @@ class Bot():
                         response = character.restore_resource(thing)
                     except:
                         return "Error replenishing this resource.", private
-                response = character.get_property(sheet_object.split(' ')[0])
             elif thing.capitalize() in character.arslist:
                 try:
                     response = character.add_item_to_arsenal(thing,value)
@@ -401,8 +399,9 @@ class Bot():
             try:
                 # Have to read buffs here
                 response = character.reset_resource(sheet_object)
-            except:
-                return "Error resetting this."
+            except Exception as e:
+                print(str(e))
+                return "Error resetting this.", private
             self.character_update(character)
             self.character_log(character, message, response)
             

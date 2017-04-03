@@ -19,6 +19,8 @@
 -Extend field to take multiple words (spaces) (Labels with Spaces)
 
 -Sort stats to output in the order of the official character sheet (Replace the dictionary with a list) ---
+REPLACING DICTIONARY WITH LIST INEFFICIENT
+ADDED A REDUNDANT LIST SIMPLY FOR ORDER-KEEPING INSTEAD
 
 -Change syntax: Descriptions, Collections etc.  when using commands. Add aliases Basically be consistent about what you reference in the help files and what you take as a command
 

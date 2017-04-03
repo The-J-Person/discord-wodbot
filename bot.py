@@ -161,6 +161,11 @@ async def on_message(message):
     elif message.content.startswith('!help '):
         destination = message.channel.id
         response = Bot.print_info(message)   
+        splits = DiscordThrall.splitstr(response, 2000)
+        if len(splits) > 1:
+            for msg in splits: # Discord message length limit
+                await client.send_message(message.channel, msg)
+            return
     
     # Blank help request 
     elif message.content.startswith('!help'):

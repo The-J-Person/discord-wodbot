@@ -1,0 +1,21 @@
+__**Character Sheet Functionality:**__
+            
+__Creating a new sheet:__
+To create a new sheet, type `!create [name] ([template])`. 
+For example, `!create bob Vampire` will create a sheet named 'bob' that will be preset with fields suitable for V20.
+The `name` must be unique, without spaces, and doesn't have to be your character's actual full name. 
+It is also recommended to keep it short.
+Writing a `template` is optional: Any sheet can eventually be extended to being compatible with any system.
+Currently supported template keywords are: `Vampire,V20,VDA,V:DA,V20DA,Werewolf,W20,We20,Spirit,Mage,M20`
+
+You can then see your new sheet with `!c [name] get sheet` with the name you've used to create it.
+
+Your sheet is divided into 5 sections by `---` (three dashes).
+1. `Identification` (The only section that cannot be extended)
+2. `Descriptions` (Free text fields will go here.)
+3. `Stats` (Numeric values representing your character, subdivided into sub categories)
+4. `Resources` (Fluctuating numeric values, such as blood pools, willpower, gnosis, rage, etc...)
+5. `Collections` (Groupings of 'free text' items, such as Items, Derangements, Rituals, etc. Also known as `Arsenals`.)
+
+You can learn more about using these parts of your sheet via `!help descriptions`, `!help stats`, `!help resources` and `!help collections`, respectively.
+

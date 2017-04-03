@@ -70,6 +70,20 @@ class WoDCharacter:
             self.initialize_from_string(text)
     def __str__(self,):
         return "---\n".join(self.to_text_section(0))
+    def status(self):
+        result = "**Name:** " + self.name + "\n**Health:**\n```C\n"
+        for level in self.health:
+            result += '[' + str(level) + ']'
+        result += "\n"
+        for level in self.damage:
+            result += '[' + str(level) + ']'
+        result += '\n```\n'
+        for buff in self.buffs.keys():
+            if buff not in self.resourcelist:
+                result += self.get_property(buff) + "\n"
+        for resource in self.resourcelist:
+            result += self.get_property(resource)
+        return result
     def display(self):
         section = []
         fullname = ""
@@ -98,12 +112,18 @@ class WoDCharacter:
         for i in range(len(self.statlist[0])):
             result += "__**" + self.statlist[0][i] + ":**__\n"
             for stat in self.statlist[i+1]:
-                result += "**" + stat + ":** " + str(self.stats[self.statlist[0][i]][stat]) + "\t"
+                if stat in self.buffs:
+                    result += "**" + stat + ":** " + str(self.stats[self.statlist[0][i]][stat]) + "(" + str(self.stats[self.statlist[0][i]][stat]+self.buffs[stat]) +")\t"
+                else:
+                    result += "**" + stat + ":** " + str(self.stats[self.statlist[0][i]][stat]) + "\t"
             result += "\n"
         section.append(result)#result += "---\n"
         result = "__Resources__\n"
         for resource in self.resourcelist:
-            result += "**" + resource + ":** " + str(self.resources[resource][0]) + "/" + str(self.resources[resource][1]) + "\n"
+            if resource in self.buffs:
+                result += "**" + resource + ":** " + str(self.resources[resource][0]) + "/" + str(self.resources[resource][1]) + "(" + str(self.resources[resource][1]+self.buffs[resource]) + ")\n"
+            else:
+                result += "**" + resource + ":** " + str(self.resources[resource][0]) + "/" + str(self.resources[resource][1]) + "\n"
         section.append(result)#result += "---\n"
         result = "__Collections__\n"
         for bag in self.arslist:
@@ -219,7 +239,7 @@ class WoDCharacter:
             elif 'X' in self.damage and 'Ж' in self.damage:
                 response += "\n *If mortal, this character is dead.*" #Ask badger whether this is the case
             else:
-                response += "\n *This character is very dead.*"
+                response += "\n *This character is dead. Convert to `Wraith the Oblivion` sheet?*"
         return response
     def show_health(self):
         result = "__" + self.name.capitalize() + ":__"
@@ -273,6 +293,22 @@ class WoDCharacter:
         self.statlist[index].append(name)
         self.stats[category][name] = 0
         return "Created successfully."
+    def remove_stat(self, stat):
+        key = ""
+        cat = ""
+        for category in self.stats.keys():
+            for entry in self.stats[category].keys():
+                if entry == stat.capitalize():
+                    key = entry
+                    cat = category
+                    break
+            if key != "":
+                break
+        if key == "":
+            return "The character lacks this stat.\n*Check spelling?."
+        del self.stats[cat][key]
+        self.statlist[self.statlist[0].index(cat)+1].remove(key)
+        return stat.capitalize() + " has been removed."
     def set_stat(self,stat,level):
         key = ""
         cat = ""
@@ -330,6 +366,16 @@ class WoDCharacter:
         for stat in stats:
             total += self.get_numeric_stat(stat)
         return total
+    def get_dice_penalty(self):
+        c = 0
+        for dot in self.damage:
+            if dot != ' ':
+                c += 1
+        if c == len(self.health):
+            return -1
+        if c == 0:
+            return 0
+        return self.health[c-1]
     def create_resource(self,rsrc):
         rsrc = rsrc.capitalize()
         if len(rsrc) < 1:
@@ -347,6 +393,7 @@ class WoDCharacter:
             return "ERROR: Resource not on character"
         del self.resources[rsrc.capitalize()]
         self.resourcelist.remove(rsrc)
+        return "Resource deleted."
     def set_resource(self,rsrc,amount):
         self.resources[rsrc.capitalize()][0] = int(amount)    
         return rsrc + " set to " + str(amount) + "/" + str(self.resources[rsrc][1]) + " for " + self.name + "!"
@@ -361,12 +408,20 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
         return self.name.capitalize() + " gained " + str(amount) + " " + rsrc.capitalize() + """.
 Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.capitalize()][0]
     def reset_resource(self,rsrc):
+        response = ""
         if rsrc.capitalize() == "All":
+            for r in self.resourcelist:
+                response += r + " reset from " + str(self.resources[r][0]) + " to " + str(self.resources[r][1]) + "\n"
             self.reset_all_resource()
         elif rsrc.capitalize() == "Buffs":
+            response += "Resetting buffs:\n"
+            for buff in self.buffs.keys():
+                response += self.get_property(buff) + "\n"
             self.reset_buffs()
         else:
+            response = "Resetting " + rsrc + " from " + str(self.resources[rsrc.capitalize()][0]) + " to " + str(self.resources[rsrc.capitalize()][1])
             self.resources[rsrc.capitalize()][0] = self.resources[rsrc.capitalize()][1]
+        return response
     def reset_all_resource(self):
         for rsrc in self.resources.keys():
                 self.resources[rsrc][0] = self.resources[rsrc][1]
@@ -476,6 +531,71 @@ Now at""" + self.resources[rsrc.capitalize()][1] + "/" + self.resources[rsrc.cap
         for arsenal in self.arsenals.keys():
             if arsenal == prop:
                 return "Error: Arsenals can not be 'set'."
+        return "Could not find " + prop + " for " + self.name
+    
+    def delete_property(self,prop):
+        prop = prop.capitalize()
+        for description in self.descriptions.keys():
+            if description == prop:
+                self.remove_description(prop)
+                return "Successfully deleted."
+        for category in self.stats.keys():
+            for stat in self.stats[category].keys():
+                if stat == prop:
+                    try:
+                        self.remove_stat(prop)
+                    except:
+                        return "Error: Could not determine number value."
+                    return "Successfully deleted."
+        for resource in self.resources.keys():
+            if resource == prop:
+                try:
+                    self.remove_resource(prop)
+                except:
+                    return "Error: Could not determine number value."
+                return "Successfully deleted."
+        for arsenal in self.arsenals.keys():
+            if arsenal == prop:
+                self.remove_arsenal(prop)
+                return "Successfully deleted."
+        return "Could not find " + prop + " for " + self.name
+    
+    def rename_property(self,prop,newname):
+        prop = prop.capitalize()
+        newname = newname.capitalize()
+        for description in self.descriptions.keys():
+            if description == prop:
+                self.descriptions[newname] = self.descriptions[prop]
+                del self.descriptions[prop]
+                self.desclist[self.desclist.index(prop)] = newname
+                return "Successfully changed."
+        for category in self.stats.keys():
+            for stat in self.stats[category].keys():
+                if stat == prop:
+                    try:
+                        self.stats[category][newname] = self.stats[category][prop]
+                        del self.stats[category][prop]
+                        cati = self.statlist[0].index(category)+1
+                        proi = self.statlist[cati].index(prop)
+                        self.statlist[cati][proi] = newname
+                    except:
+                        return "ERROR: ??? I don't even know what kind, none was predicted to happen."
+                    return "Successfully changed."
+        for resource in self.resources.keys():
+            if resource == prop:
+                try:
+                    self.resources[newname] = self.resources[prop]
+                    del self.resources[prop]
+                    self.resourcelist[self.resourcelist.index(prop)] = newname
+                except:
+                    return "ERROR: ??? I don't even know what kind, none was predicted to happen."
+                return "Successfully changed."
+        for arsenal in self.arsenals.keys():
+            if arsenal == prop:
+                self.arsenals[newname] = self.arsenals[prop]
+                del self.arsenals[prop]
+                self.arslist[self.arslist.index(prop)] = newname
+                return "Successfully changed."
         return "Could not find " + prop + " for " + self.name
     
     def template(self,ttype):

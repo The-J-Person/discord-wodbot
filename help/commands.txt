@@ -1,0 +1,13 @@
+__**List of Commands:**__
+Replace any item in [] square brackets with appropriate content.
+Content in () round brackets may be omitted. *Round brackets are not part of the command!*
+            
+`!help [commands/rolling/roles/voting/characters/possibly other things]` // Provides help text on the requested subject
+`!r(oll) [NdN(>=NfN+N-N)]` // Rolls dice
+`!sch(recknet) [name] [message]` // Sends a message to #schrecknet with the specified username.
+`!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user. Staff only.
+`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned, or **offserver** for pruning messages of users who left the server. Staff only.
+`!greet` // Manually initiate user application process. Should start automatically when user joins.
+**Character Sheet functionality**
+`!create [name] [type]` // Creates a new character sheet with the supplied name and type (ex Bob the Vampire)
+`!c(har) [name] [command] [more stuff]` // Using Character Sheet functionality. See `!help characters` for more info.

@@ -343,6 +343,8 @@ class Bot():
             if sheet_object.lower() == "sheet":
                 private = True
                 return character.display(), private
+            if sheet_object.lower() == "status":
+                return character.status(), private
             return character.get_property(sheet_object.strip("'\"")), private
         
         elif command=="use":
@@ -371,34 +373,42 @@ class Bot():
                 thing = thing.capitalize()
             except:
                 return "There is something wrong with your labels.", private
-            if len(value)>=1:
+            if thing.capitalize() in character.resourcelist:
+                if len(value)>=1:
+                    try:
+                        character.restore_resource(thing,value)
+                    except:
+                        return "Error replenishing this resource.", private
+                else:
+                    try:
+                        response = character.restore_resource(thing)
+                    except:
+                        return "Error replenishing this resource.", private
+                response = character.get_property(sheet_object.split(' ')[0])
+            elif thing.capitalize() in character.arslist:
                 try:
-                    character.restore_resource(thing,value)
+                    response = character.add_item_to_arsenal(thing,value)
                 except:
-                    return "Error replenishing this resource."
+                    return "Error completing this pick-up"
             else:
-                try:
-                    response = character.restore_resource(thing)
-                except:
-                    return "Error replenishing this resource."
-            response = character.get_property(sheet_object.split(' ')[0])
+                return "ERROR: You appear to be using the incorrect command.", private
             self.character_update(character)
             self.character_log(character, message, response)
+            
         elif command=="reset":
             try:
                 # Have to read buffs here
-                character.reset_resource(sheet_object)
+                response = character.reset_resource(sheet_object)
             except:
-                return "Error resetting this resource."
-            if sheet_object.capitalize()!="Buffs":
-                response = character.get_property(sheet_object.split(' ')[0])
-            else:
-                response = "Buffs reset"
+                return "Error resetting this."
             self.character_update(character)
+            self.character_log(character, message, response)
+            
         elif command=="buff":
             response = character.add_buff(sheet_object.split(' ')[0],sheet_object.split(' ')[1])
             self.character_update(character)
             self.character_log(character, message, response)
+            
         elif command=="pickup":
             try:
                 character.add_item_to_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
@@ -407,7 +417,8 @@ class Bot():
             response = name + " picked up a new " + sheet_object.split(' ')[0].lower() + "!"
             self.character_update(character)
             self.character_log(character, message, response)
-        elif command=="drop":
+            
+        elif command=="drop" or command=="remove":
             try:
                 character.remove_item_from_arsenal(sheet_object.partition(' ')[0],sheet_object.partition(' ')[2])
             except:
@@ -415,35 +426,72 @@ class Bot():
             response = name + " dropped the " + sheet_object.split(' ')[0].lower() + ": " + sheet_object.partition(' ')[2] + "."
             self.character_update(character)
             self.character_log(character, message, response)
+            
+        elif command=="damage" or command=="hit":
+            repeats = 1
+            if len(sheet_object.split(' '))>1:
+                repeats = int(sheet_object.split(' ')[1])
+            for _ in range(repeats):
+                response = character.take_damage(sheet_object.split(' ')[0])
+            self.character_update(character)
+            self.character_log(character, message, response)
+            
+        elif command=="heal" or command=="restore" or command=="mend":
+            repeats = 1
+            if len(sheet_object.split(' '))>1:
+                repeats = int(sheet_object.split(' ')[1])
+            for _ in range(repeats):
+                response = character.heal_damage(sheet_object.split(' ')[0])
+            self.character_update(character)
+            self.character_log(character, message, response)
+            
+        elif command=="rename":
+            return "Not implemented yet!",private
+            self.character_update(character)
+            self.character_log(character, message, response)
+            
+        elif command=="delete":
+            return "Not implemented yet!",private
+            self.character_update(character)
+            self.character_log(character, message, response)
+        
         elif command=="roll":
             rolltext = ""
             if len(sheet_object.split(' ')) > 1:
                 extras = ""
+                comment = " "
                 to_roll = sheet_object.partition(' ')
                 pool = str(character.get_dice_pool(to_roll[0]))
                 if '>' in to_roll[2]:
                     extras = to_roll[2]
-                elif 'diff' in to_roll[2]:
-                    extras = ">=" + to_roll[2].replace('diff ','').split(' ')[0]
-                    more = to_roll[2].partition(' ')[2]
+                else:
+                    more = to_roll[2]
+                    if 'diff' in to_roll[2]:
+                        extras = ">=" + to_roll[2].replace('diff ','').split(' ')[0]
+                        more = to_roll[2].partition(' ')[2]
+                    else:
+                        extras = ">=6"
                     if 'p' not in more:
                         extras += "f1"
                     if 'w' in more:
                         extras += "+1"
                     if 's' in more:
                         extras += "s"
-                else:
-                    extras = ">=6"
-                    if 'p' not in to_roll[2]:
-                        extras += "f1"
-                    if 'w' in to_roll[2]:
-                        extras += "+1"
-                    if 's' in to_roll[2]:
-                        extras += "s"
-                rolltext = pool + "d10" + extras + " # rolling " + to_roll[0] + " for " + name
+                    if 'i' not in more:
+                        penalty = character.get_dice_penalty()
+                        if penalty == -1:
+                            return "This character is incapacitated. Append 'i' to ignore health status.", private
+                        pool -= penalty
+                    if 'h' not in more:
+                        for stat in to_roll[0].split('+'):
+                            if stat.isdigit():
+                                continue
+                            comment += character.get_property(stat)
+                rolltext = pool + "d10" + extras + " # rolling " + to_roll[0] + " for " + name + comment
             else:
                 rolltext = str(character.get_dice_pool(sheet_object)) + "d10>=6f1 # rolling " + sheet_object + " for " + name
             return self.parse_dieroll(rolltext,message.author.mention), private
+        
         elif command=="extend":
             try:
                 extended = sheet_object.split(' ')[0].capitalize()
@@ -457,6 +505,12 @@ class Bot():
                     response = character.create_resource(extension)
                 elif extended == "Arsenal" or extended == "Collection" or extended == "Arsenals" or extended == "Collections":
                     response = character.create_arsenal(extension)
+                elif extended == "Health":
+                    if extension.isdigit() and int(extension)>=0:
+                        character.add_health_level(extension)
+                        response = "Health level added"
+                    else:
+                        return "You must provide the penalty for being injured at that health level (with no minus sign).", private
                 else:
                     response = character.add_stat(extended,extension)
                     if response == "You don't have such a stat category.":
@@ -466,7 +520,6 @@ class Bot():
             except Exception as e:
                 print(str(e))
                 return "There was an error extending this character.", private
-            response = "Extended successfully."
         else:
             return "Unrecognized command", private
 
@@ -555,48 +608,11 @@ Once you are ready to apply for a game, please post the following in """ + appli
             what = message.content.split(' ')[1].lower()
         except:
             what = "commands"
-        if what == "commands":
-            return """**List of Commands:**
-Replace any item in [] square brackets with appropriate content.
-Content in () round brackets may be omitted. *Round brackets are not part of the command!*
-            
-`!help [commands/rolling/roles/voting/characters/possibly other things]` // Provides help text on the requested subject
-`!r(oll) [NdN(>=NfN+N-N)]` // Rolls dice
-`!sch(recknet) [name] [message]` // Sends a message to #schrecknet with the specified username.
-`!promote [@user] [number]` // Adds a role (number in hierarchy) to a mentioned user. Staff only.
-`!prune [@user] [number]` // Prunes the last N (number entered) messages of a user mentioned, or **offserver** for pruning messages of users who left the server. Staff only.
-`!greet` // Manually initiate user application process. Should start automatically when user joins.
-**Character Sheet functionality**
-`!create [name] [type]` // Creates a new character sheet with the supplied name and type (ex Bob the Vampire)
-`!c(har) [name] [command] [more stuff]` // Using Character Sheet functionality. See `!help characters` for more info.
-"""
-# + """
-# **Playlist functionality** runs a process separate from the main one and, as a result, might crash independently :yum:
-# `$summon` // Adds the bot to the voice room you are in. Does not work in direct-messaging!
-# `$play [link]` // Plays music from given link. See https://rg3.github.io/youtube-dl/supportedsites.html for supported sites.
-# `$play ytsearch:[term]` // Searches youtube for [term] and adds the first result to playing queue.
-# `$pause` // Pauses audio
-# `$resume` // Resumes paused
-# `$stop` // Stops and clears playlist
-# `$volume [number]` // Sets volume to a given percentage
-# """ 
-        elif what == "rolling":
-            return """**Rolling**
-            
-Format:
-`!r(oll) [AdB(>=CfD+E-Fs)]`
-Rolls A dice with B faces.
-Optionally, counting successes for results higher than C, 
-Botching on D and lower, 
-Adding E to the result and/or subtracting F from it. 
-If **s** is added at the end, any maximum result will be counted as two successes.
-Examples: 
-`!roll 6d10>=7f1+1 `
-Rolls a dice pool of six 10-sided dice at difficulty 7, subtracts any 1s from the number of successes, and adds 1 to the total (presumably willpower spent)
-`!r 3d10>7`
-Rolls a dice pool of three 10-sided dice at difficulty 8(>7), and doesn't substract 1s from successes rolled.
-`!r 1d6-1`
-Rolls one 6-sided die and subtracts 1 from the result."""
+        if what + ".txt" in os.listdir('./help'):
+            f = open("./help/"+what+".txt",'r')
+            response = f.read()
+            f.close()
+            return response
         elif what == "roles":
             hierarchy = message.server.role_hierarchy
             hierarchy.reverse()
@@ -609,69 +625,7 @@ The roles' corresponding numbers are, at present, as follows:
             for i in range(1,len(hierarchy)):
                 response += str(i) + '. ' + hierarchy[i].name + '\n'
             return response
-        elif what == "characters":
-            return """**Character Sheet Functionality:**
-            
-__Creating a new sheet:__
-To create a new sheet, type `!create [name] ([template])`. 
-For example, `!create bob Vampire` will create a sheet named 'bob' that will be preset with fields suitable for V20.
-The `name` must be unique, without spaces, and doesn't have to be your character's actual full name. 
-It is also recommended to keep it short.
-Writing a `template` is optional: Any sheet can eventually be extended to being compatible with any system.
-Currently supported template keywords are: `Vampire,V20,VDA,V:DA,V20DA,Werewolf,W20,We20,Spirit,Mage,M20`
-
-You can then see your new sheet with `!c [name] get sheet` with the name you've used to create it.
-
-Your sheet is divided into 5 sections by `---` (three dashes).
-1. `Identification` (The only section that cannot be extended)
-2. `Descriptions` (Free text fields will go here.)
-3. `Stats` (Numeric values representing your character, subdivided into sub categories)
-4. `Resources` (Fluctuating numeric values, such as blood pools, willpower, gnosis, rage, etc...)
-5. `Collections` (Groupings of 'free text' items, such as Items, Derangements, Rituals, etc. Also known as `Arsenals`.)
-
-You can learn more about using these parts of your sheet via `!help descriptions`, `!help stats`, `!help resources` and `!help collections`, respectively.
-"""
-        elif what == "descriptions":
-            return """**Character Sheet Descriptions:**
-
-Descriptions are the free-text fields of your sheet. 
-You can write anything in them, although keep discord's message length limit in mind!
-To create a new description, use `!c(har) [character name] extend Description [description name]`.
-Example: `!c bob extend Description Appearance` will create a new Description labeled 'Appearance' on Bob's sheet.
-You can then write something in there using `!c(har) [character name] set [description name] [description content]`.
-Example: `!c bob set Appearance Bob wears a horse mask and tutu` will set Bob's 'Appearance' on the sheet to 'Bob wears a horse mask and tutu'
-To then show off your writing, use `!c(har) [character name] get [description name].` - you can substitute `get` for `show`.
-Example: `!char bob get Appearance` will show Bob's Appearance in the current channel."""
-        elif what == "stats":
-            return """**Character Sheet Stats:**
-
-Stats are the crunch of your character - the numbers representing the persona.
-They are divided into categories - every stat must belong to a category!
-To create a new stat, use `!c(har) [name] extend [category name] [new stat name]`, and it will appear in that category with a value of 0.
-You can then set it by using `!c(har) [name] set [stat name]`. This can also be used to change existing stats.
-To create a new stat category, use `!c(har) [name] extend statgroup [new category name]`. 
-Make sure not to leave a statgroup empty! Create a new stat for your new group.
-You can always see your sheet with `!c(har) [name] get sheet`, but you can also get/show an individual stat:
-`!c(har) [name] get [stat name]` will do that. You can substitute `get` for `show`.
-You can also roll them: `!c(har) [name] roll [stat]+[another stat]+[a 3rd stat...]` will roll a dice pool equal to the sum of these supplied stats.
-By default this will be at difficulty 6, natural 1s subtracting successes. You can specify otherwise by appending `diff X` (X being another difficulty) to the end of the roll request.
-You may also add a combination of letters after that - 
-`w` (willpower) will assume one automatic success, 
-`p` (passive) will make the roll not subtract successes, and
-`s` (speciality) will make every roll of 10 count as 2 successes.
-Example: `!char bob roll strength+brawl diff 7 ws` will roll Bob's Strength+Brawl dicepool, difficulty 7, giving 1 automatic success, and counting 10s twice.
-Note the space before the last letter jumble - it needs to be there!
-If you prefer diceroller syntax, you can use it too:
-Example: Bob's strength=2 and brawl=4, `!c bob roll strength+brawl >=7f1+1` will work like `!r 6d10>=7f1+1` on the dice roller.
-Note the space!
-Stats can be buffed with `!c(har) [name] buff [stat name] X`, X being the buff amount.
-This will increase the stat by the given amount until you reset buffs (using `!c(har) [name] reset buffs`) or the bot restarts."""
-        elif what == "resources":
-            return """**Character Sheet Resources:**
-"""
-        elif what == "collections" or what == "arsenals":
-            return """**Character Sheet Collections(Arsenals):**
-"""
+        
         else:
             return "Unknown help request: Try '!help commands' for a list."
         

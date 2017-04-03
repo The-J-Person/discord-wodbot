@@ -1,0 +1,16 @@
+__**Rolling**__
+            
+Format:
+`!r(oll) [AdB(>=CfD+E-Fs)]`
+Rolls A dice with B faces.
+Optionally, counting successes for results higher than C, 
+Botching on D and lower, 
+Adding E to the result and/or subtracting F from it. 
+If **s** is added at the end, any maximum result will be counted as two successes.
+Examples: 
+`!roll 6d10>=7f1+1 `
+Rolls a dice pool of six 10-sided dice at difficulty 7, subtracts any 1s from the number of successes, and adds 1 to the total (presumably willpower spent)
+`!r 3d10>7s`
+Rolls a dice pool of three 10-sided dice at difficulty 8(>7), and doesn't substract 1s from successes rolled. Because of the 's' at the end, 10s will count double.
+`!r 1d6-1`
+Rolls one 6-sided die and subtracts 1 from the result.
